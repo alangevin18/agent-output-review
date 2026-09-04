@@ -7,6 +7,74 @@ import { useSubmissions } from "@/lib/submissions-context";
 import { reviewProgress } from "@/lib/utils/review";
 import { actionLabel, reviewStatusLabel } from "@/lib/format";
 
+function FinalizationSummary({
+  approvedCreated,
+  approvedUpdated,
+  approvedDeleted,
+  rejectedCount,
+}: {
+  approvedCreated: number;
+  approvedUpdated: number;
+  approvedDeleted: number;
+  rejectedCount: number;
+}) {
+  const totalApproved = approvedCreated + approvedUpdated + approvedDeleted;
+  const hasApproved = totalApproved > 0;
+
+  return (
+    <div className="mt-6 rounded-lg border border-black bg-primary/20 p-5">
+      <h2 className="text-base font-medium">Ready to finalize</h2>
+
+      {hasApproved ? (
+        <div className="mt-4">
+          <p className="text-sm">
+            <span className="font-medium">{totalApproved} approved change{totalApproved !== 1 ? "s" : ""}</span> will be applied:
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-black">
+            {approvedCreated > 0 && (
+              <li className="flex items-center gap-2">
+                <span className="font-mono">+</span>
+                <span>{approvedCreated} created</span>
+              </li>
+            )}
+            {approvedUpdated > 0 && (
+              <li className="flex items-center gap-2">
+                <span className="font-mono">~</span>
+                <span>{approvedUpdated} updated</span>
+              </li>
+            )}
+            {approvedDeleted > 0 && (
+              <li className="flex items-center gap-2">
+                <span className="font-mono">−</span>
+                <span>{approvedDeleted} deleted</span>
+              </li>
+            )}
+          </ul>
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-black">
+          No changes will be applied to Project Files.
+        </p>
+      )}
+
+      {rejectedCount > 0 && (
+        <p className="mt-4 text-sm text-black">
+          {rejectedCount} rejected change{rejectedCount !== 1 ? "s" : ""} will be discarded.
+        </p>
+      )}
+
+      <div className="mt-5">
+        <button
+          type="button"
+          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/80"
+        >
+          {hasApproved ? `Finalize & merge ${totalApproved} file${totalApproved !== 1 ? "s" : ""}` : "Finalize review"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function SubmissionOverview({ submissionId }: { submissionId: string }) {
   const { submissions } = useSubmissions();
   const submission = submissions.find((s) => s.id === submissionId);
@@ -14,7 +82,13 @@ export function SubmissionOverview({ submissionId }: { submissionId: string }) {
   if (!submission) return null;
 
   const { approved, rejected, pending, decided, total } = reviewProgress(submission);
-  const isReadyToMerge = pending === 0 && total > 0;
+  const isReadyToFinalize = pending === 0 && total > 0;
+
+  // Count approved files by action type
+  const approvedFiles = submission.files.filter((f) => f.reviewStatus === "approved");
+  const approvedCreated = approvedFiles.filter((f) => f.action === "created").length;
+  const approvedUpdated = approvedFiles.filter((f) => f.action === "updated").length;
+  const approvedDeleted = approvedFiles.filter((f) => f.action === "deleted").length;
 
   return (
     <div className="w-full px-6 py-6">
@@ -29,23 +103,36 @@ export function SubmissionOverview({ submissionId }: { submissionId: string }) {
         </div>
         <span
           className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-            isReadyToMerge
+            isReadyToFinalize
               ? "bg-primary/40 text-foreground"
               : "bg-muted text-muted-foreground"
           }`}
         >
-          {isReadyToMerge ? "Ready to Merge" : "In Review"}
+          {isReadyToFinalize ? "Ready to Finalize" : "In Review"}
         </span>
       </div>
 
-      <p className="mt-4 text-sm font-medium">
-        {decided} of {total} files reviewed
-      </p>
-      <p className="mt-1 flex gap-6 text-sm text-muted-foreground">
-        <span>{approved} approved</span>
-        <span>{rejected} rejected</span>
-        <span>{pending} pending</span>
-      </p>
+      {!isReadyToFinalize && (
+        <>
+          <p className="mt-4 text-sm font-medium">
+            {decided} of {total} files reviewed
+          </p>
+          <p className="mt-1 flex gap-6 text-sm text-muted-foreground">
+            <span>{approved} approved</span>
+            <span>{rejected} rejected</span>
+            <span>{pending} pending</span>
+          </p>
+        </>
+      )}
+
+      {isReadyToFinalize && (
+        <FinalizationSummary
+          approvedCreated={approvedCreated}
+          approvedUpdated={approvedUpdated}
+          approvedDeleted={approvedDeleted}
+          rejectedCount={rejected}
+        />
+      )}
 
       <hr className="mt-5 border-black" />
 

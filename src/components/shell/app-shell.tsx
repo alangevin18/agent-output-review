@@ -262,8 +262,57 @@ function IconRail() {
   );
 }
 
+function SubmissionCategory({
+  title,
+  submissions,
+  count,
+}: {
+  title: string;
+  submissions: Submission[];
+  count: number;
+}) {
+  const [open, setOpen] = useState(true);
+
+  if (submissions.length === 0) return null;
+
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-1.5 px-2 py-1 text-left"
+      >
+        <ExpandChevron open={open} className="size-3" />
+        <span className="text-xs font-medium text-muted-foreground">{title}</span>
+        <span className="ml-auto text-xs text-muted-foreground">{count}</span>
+      </button>
+      {open && (
+        <div>
+          {submissions.map((submission) => (
+            <ReviewItem key={submission.id} submission={submission} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProjectSidebar() {
   const { submissions } = useSubmissions();
+
+  // Split submissions into awaiting review and ready to finalize
+  const awaitingReview = submissions.filter((s) => {
+    const { decided, total } = reviewProgress(s);
+    return decided < total;
+  });
+  const readyToFinalize = submissions.filter((s) => {
+    const { decided, total } = reviewProgress(s);
+    return decided === total;
+  });
+
+  // Sort each category
+  const sortedAwaiting = sortSubmissionsByProgress(awaitingReview);
+  const sortedReady = sortSubmissionsByProgress(readyToFinalize);
 
   return (
     <aside className="flex w-[360px] shrink-0 flex-col border-r border-black bg-sidebar">
@@ -294,9 +343,21 @@ function ProjectSidebar() {
       <SidebarSection title="Drive" actionLabel="Upload" empty="No files yet" defaultOpen={false} />
 
       <SidebarSection title="Reviews" grow>
-        {sortSubmissionsByProgress(submissions).map((submission) => (
-          <ReviewItem key={submission.id} submission={submission} />
-        ))}
+        <SubmissionCategory
+          title="Awaiting Review"
+          submissions={sortedAwaiting}
+          count={awaitingReview.length}
+        />
+        <SubmissionCategory
+          title="Ready to Finalize"
+          submissions={sortedReady}
+          count={readyToFinalize.length}
+        />
+        {submissions.length === 0 && (
+          <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+            No reviews yet
+          </p>
+        )}
       </SidebarSection>
 
       <SidebarSection title="Activity" empty="No activity yet" defaultOpen={false} />
