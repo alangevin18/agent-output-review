@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, MessageSquare, X } from "lucide-react";
-import type { FileReviewStatus } from "@/lib/data/types";
+import type { FileReviewStatus } from "@/types";
 
 type Comment = {
   id: string;

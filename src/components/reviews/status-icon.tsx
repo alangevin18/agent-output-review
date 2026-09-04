@@ -1,5 +1,5 @@
 import { Check, Circle, X } from "lucide-react";
-import type { FileReviewStatus } from "@/lib/data/types";
+import type { FileReviewStatus } from "@/types";
 
 export function StatusIcon({
   status,

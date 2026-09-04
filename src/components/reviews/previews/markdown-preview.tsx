@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { FileAction } from "@/lib/data/types";
+import type { FileAction } from "@/types";
 import { ActionPill } from "./file-preview";
 
 type ViewMode = "rendered" | "source";

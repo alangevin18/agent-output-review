@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { SEED_MANIFEST } from "./paths";
-import type { FileAction, Submission, SubmissionFile } from "./types";
+import type { FileAction, Submission, SubmissionFile } from "@/types";
 
 type SeedFile = {
   id: string;

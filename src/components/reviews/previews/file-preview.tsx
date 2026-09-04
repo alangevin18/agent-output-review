@@ -1,6 +1,6 @@
 "use client";
 
-import type { FileAction, SubmissionFile } from "@/lib/data/types";
+import type { FileAction, SubmissionFile } from "@/types";
 import { ImagePreview } from "./image-preview";
 import { CSVPreview } from "./csv-preview";
 import { JSONPreview } from "./json-preview";

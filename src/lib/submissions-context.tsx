@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { FileReviewStatus, Submission } from "@/lib/data/types";
+import type { FileReviewStatus, Submission } from "@/types";
 
 type SubmissionsContextType = {
   submissions: Submission[];

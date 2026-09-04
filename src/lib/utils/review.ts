@@ -1,32 +1,6 @@
-export type FileAction = "created" | "updated" | "deleted";
+import type { Submission, SubmissionFile } from "@/types";
 
-export type FileReviewStatus = "pending" | "approved" | "rejected";
-
-export type SubmissionFile = {
-  id: string;
-  filename: string;
-  /** Path under `data/seed/` for the proposed bytes. Null when the file is being deleted. */
-  seedPath: string | null;
-  /** Where this file will land in project files if the submission is merged. */
-  targetPath: string;
-  mimeType: string | null;
-  size: number | null;
-  action: FileAction;
-  message: string;
-  /** Per-file review decision. Pending until approved or rejected. */
-  reviewStatus: FileReviewStatus;
-};
-
-export type Submission = {
-  id: string;
-  title: string;
-  description: string;
-  author: string;
-  createdAt: string;
-  files: SubmissionFile[];
-};
-
-/** Files with an approve/reject decision, over total files. Merge is separate. */
+/** Calculate review progress for a submission */
 export function reviewProgress(submission: Submission): {
   approved: number;
   rejected: number;
@@ -53,8 +27,9 @@ export function reviewProgress(submission: Submission): {
   };
 }
 
+/** Sort submissions by review progress (most complete first) */
 export function sortSubmissionsByProgress(
-  submissions: Submission[],
+  submissions: Submission[]
 ): Submission[] {
   return [...submissions].sort((a, b) => {
     const progressA = reviewProgress(a);
@@ -71,10 +46,8 @@ export function sortSubmissionsByProgress(
   });
 }
 
-/** Pending files first so the next review is at the top. */
-export function sortFilesForReview(
-  files: SubmissionFile[],
-): SubmissionFile[] {
+/** Sort files with pending ones first */
+export function sortFilesForReview(files: SubmissionFile[]): SubmissionFile[] {
   return [...files].sort((a, b) => {
     const aPending = a.reviewStatus === "pending" ? 0 : 1;
     const bPending = b.reviewStatus === "pending" ? 0 : 1;

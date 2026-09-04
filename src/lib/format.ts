@@ -1,4 +1,4 @@
-import type { FileAction, FileReviewStatus } from "./data/types";
+import type { FileAction, FileReviewStatus } from "@/types";
 
 const SHORT_MONTHS = [
   "Jan",

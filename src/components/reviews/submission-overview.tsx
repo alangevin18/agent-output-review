@@ -4,7 +4,7 @@ import Link from "next/link";
 import { RelativeTime } from "@/components/reviews/relative-time";
 import { StatusIcon } from "@/components/reviews/status-icon";
 import { useSubmissions } from "@/lib/submissions-context";
-import { reviewProgress } from "@/lib/data/types";
+import { reviewProgress } from "@/lib/utils/review";
 import { actionLabel, reviewStatusLabel } from "@/lib/format";
 
 export function SubmissionOverview({ submissionId }: { submissionId: string }) {

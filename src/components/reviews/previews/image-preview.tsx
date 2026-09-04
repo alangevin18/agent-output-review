@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
-import type { FileAction } from "@/lib/data/types";
+import type { FileAction } from "@/types";
 import { ActionPill } from "./file-preview";
 
 export function ImagePreview({

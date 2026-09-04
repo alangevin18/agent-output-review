@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { FileAction } from "@/lib/data/types";
+import type { FileAction } from "@/types";
 import { ActionPill } from "./file-preview";
 
 type CSVData = {

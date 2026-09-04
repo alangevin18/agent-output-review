@@ -3,7 +3,7 @@
 import { ReviewPanel } from "@/components/reviews/review-panel";
 import { FilePreview } from "@/components/reviews/previews/file-preview";
 import { useSubmissions } from "@/lib/submissions-context";
-import type { FileReviewStatus } from "@/lib/data/types";
+import type { FileReviewStatus } from "@/types";
 
 export function FileReview({
   submissionId,

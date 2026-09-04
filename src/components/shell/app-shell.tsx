@@ -17,12 +17,12 @@ import {
 import { StatusIcon } from "@/components/reviews/status-icon";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useSubmissions } from "@/lib/submissions-context";
+import type { Submission } from "@/types";
 import {
   reviewProgress,
   sortFilesForReview,
   sortSubmissionsByProgress,
-  type Submission,
-} from "@/lib/data/types";
+} from "@/lib/utils/review";
 import { formatShortDate } from "@/lib/format";
 
 function ExpandChevron({
