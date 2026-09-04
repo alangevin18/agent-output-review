@@ -93,8 +93,8 @@
           "target_path": "reports/methods.md",
           "mime_type": "text/markdown",
           "size": 2100,
-          "action": "created",
-          "message": "Methods section for enrichment analysis, suitable for manuscript."
+          "action": "updated",
+          "message": "Updated methods section with more detail: added background set size, gene counts, and key pathway interpretations."
         },
         {
           "id": "s2_f5",

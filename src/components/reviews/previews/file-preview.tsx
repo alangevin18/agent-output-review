@@ -2,9 +2,13 @@
 
 import type { FileAction, SubmissionFile } from "@/types";
 import { ImagePreview } from "./image-preview";
+import { ImageComparePreview } from "./image-compare-preview";
 import { CSVPreview } from "./csv-preview";
+import { CSVComparePreview } from "./csv-compare-preview";
 import { JSONPreview } from "./json-preview";
+import { JSONComparePreview } from "./json-compare-preview";
 import { MarkdownPreview } from "./markdown-preview";
+import { MarkdownComparePreview } from "./markdown-compare-preview";
 import { FileX } from "lucide-react";
 
 function getFileExtension(filename: string): string {
@@ -41,7 +45,7 @@ function DeletedFilePreview({ filename }: { filename: string }) {
 }
 
 export function FilePreview({ file }: { file: SubmissionFile }) {
-  const { filename, seedPath, action } = file;
+  const { filename, seedPath, targetPath, action } = file;
   const extension = getFileExtension(filename);
 
   // Handle deleted files
@@ -49,7 +53,53 @@ export function FilePreview({ file }: { file: SubmissionFile }) {
     return <DeletedFilePreview filename={filename} />;
   }
 
-  // Route to appropriate preview based on extension
+  // For updated files, use comparison views
+  if (action === "updated") {
+    switch (extension) {
+      case "png":
+      case "jpg":
+        return (
+          <ImageComparePreview
+            proposedPath={seedPath}
+            currentPath={targetPath}
+            filename={filename}
+            action={action}
+          />
+        );
+
+      case "csv":
+        return (
+          <CSVComparePreview
+            proposedPath={seedPath}
+            currentPath={targetPath}
+            filename={filename}
+            action={action}
+          />
+        );
+
+      case "json":
+        return (
+          <JSONComparePreview
+            proposedPath={seedPath}
+            currentPath={targetPath}
+            filename={filename}
+            action={action}
+          />
+        );
+
+      case "md":
+        return (
+          <MarkdownComparePreview
+            proposedPath={seedPath}
+            currentPath={targetPath}
+            filename={filename}
+            action={action}
+          />
+        );
+    }
+  }
+
+  // For created files, use single-file preview
   switch (extension) {
     case "png":
     case "jpg":
