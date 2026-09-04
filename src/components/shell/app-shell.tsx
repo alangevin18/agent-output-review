@@ -161,7 +161,7 @@ function ReviewItem({ submission }: { submission: Submission }) {
         <span className="min-w-0 flex-1 truncate text-sm">
           {submission.title}
         </span>
-        <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
           {decided}/{total}
         </span>
         <span className="shrink-0 text-xs text-muted-foreground">
