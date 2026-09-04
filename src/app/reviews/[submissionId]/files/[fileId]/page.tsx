@@ -13,5 +13,5 @@ export default async function FileReviewPage({
 
   if (!submission || !file) notFound();
 
-  return <FileReview submission={submission} file={file} />;
+  return <FileReview submissionId={submissionId} fileId={fileId} />;
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Newsreader } from "next/font/google";
 import { AppShell } from "@/components/shell/app-shell";
+import { SubmissionsProvider } from "@/lib/submissions-context";
 import { listSubmissions } from "@/lib/data/submissions";
 import "./globals.css";
 
@@ -30,7 +31,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geist.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className={`${geist.className} h-full overflow-hidden`}>
-        <AppShell submissions={submissions}>{children}</AppShell>
+        <SubmissionsProvider initialSubmissions={submissions}>
+          <AppShell>{children}</AppShell>
+        </SubmissionsProvider>
       </body>
     </html>
   );

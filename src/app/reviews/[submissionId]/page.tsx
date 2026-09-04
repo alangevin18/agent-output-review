@@ -12,5 +12,5 @@ export default async function SubmissionPage({
 
   if (!submission) notFound();
 
-  return <SubmissionOverview submission={submission} />;
+  return <SubmissionOverview submissionId={submissionId} />;
 }

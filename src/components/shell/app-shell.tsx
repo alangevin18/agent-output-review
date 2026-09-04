@@ -9,14 +9,14 @@ import {
   Folder,
   HelpCircle,
   LayoutGrid,
-  LayoutTemplate,
   PanelLeft,
   Plus,
   Search,
   Settings,
-  Share2,
 } from "lucide-react";
 import { StatusIcon } from "@/components/reviews/status-icon";
+import { Tooltip } from "@/components/ui/tooltip";
+import { useSubmissions } from "@/lib/submissions-context";
 import {
   reviewProgress,
   sortFilesForReview,
@@ -147,27 +147,39 @@ function ReviewItem({ submission }: { submission: Submission }) {
     if (inSubmission) setOpen(true);
   }, [inSubmission]);
 
+  const isOverviewSelected = pathname === href;
+
   return (
     <div>
-      {/* Top-level submission row - click expands/collapses, no highlight */}
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        title={submission.title}
-        className="flex w-full items-center gap-1 rounded-md py-2 pl-2 pr-3 text-left hover:bg-primary/30"
-      >
-        <ExpandChevron open={open} className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate text-sm">
-          {submission.title}
-        </span>
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-          {decided}/{total}
-        </span>
-        <span className="shrink-0 text-xs text-muted-foreground">
-          {formatShortDate(submission.createdAt)}
-        </span>
-      </button>
+      {/* Top-level submission row */}
+      <div className="flex w-full items-center rounded-md py-2 pl-2 pr-3">
+        {/* Chevron - expands/collapses */}
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          className="shrink-0 rounded p-0.5"
+        >
+          <ExpandChevron open={open} className="size-4" />
+        </button>
+        {/* Text - navigates to overview */}
+        <Link
+          href={href}
+          className={`ml-1 flex min-w-0 flex-1 items-center gap-2 rounded px-1 py-0.5 ${
+            isOverviewSelected ? "bg-primary/30" : "hover:bg-primary/30"
+          }`}
+        >
+          <Tooltip text={submission.title}>
+            <span className="text-sm">{submission.title}</span>
+          </Tooltip>
+          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+            {decided === total ? "Ready" : `${decided}/${total}`}
+          </span>
+          <span className="shrink-0 text-xs text-muted-foreground">
+            {formatShortDate(submission.createdAt)}
+          </span>
+        </Link>
+      </div>
       {/* Nested file list */}
       {open ? (
         <ul className="mb-1">
@@ -178,7 +190,6 @@ function ReviewItem({ submission }: { submission: Submission }) {
               <li key={file.id}>
                 <Link
                   href={fileHref}
-                  title={file.filename}
                   className={`flex items-center gap-2 rounded-md py-2 pl-6 pr-3 ${
                     fileSelected
                       ? "bg-primary/30"
@@ -186,9 +197,9 @@ function ReviewItem({ submission }: { submission: Submission }) {
                   }`}
                 >
                   <StatusIcon status={file.reviewStatus} className="size-3.5 shrink-0" />
-                  <span className="min-w-0 flex-1 truncate text-sm">
-                    {file.filename}
-                  </span>
+                  <Tooltip text={file.filename}>
+                    <span className="text-sm">{file.filename}</span>
+                  </Tooltip>
                 </Link>
               </li>
             );
@@ -251,7 +262,9 @@ function IconRail() {
   );
 }
 
-function ProjectSidebar({ submissions }: { submissions: Submission[] }) {
+function ProjectSidebar() {
+  const { submissions } = useSubmissions();
+
   return (
     <aside className="flex w-[360px] shrink-0 flex-col border-r border-black bg-sidebar">
       <div className="flex items-start justify-between gap-2 px-3 pb-3 pt-3">
@@ -291,7 +304,8 @@ function ProjectSidebar({ submissions }: { submissions: Submission[] }) {
   );
 }
 
-function TopBar({ submissions }: { submissions: Submission[] }) {
+function TopBar() {
+  const { submissions } = useSubmissions();
   const pathname = useHydratedPathname();
   const segments = pathname.split("/").filter(Boolean);
   const submission =
@@ -316,19 +330,13 @@ function TopBar({ submissions }: { submissions: Submission[] }) {
   );
 }
 
-export function AppShell({
-  submissions,
-  children,
-}: {
-  submissions: Submission[];
-  children: ReactNode;
-}) {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-full overflow-hidden">
       <IconRail />
-      <ProjectSidebar submissions={submissions} />
+      <ProjectSidebar />
       <div className="flex min-w-0 flex-1 flex-col bg-background">
-        <TopBar submissions={submissions} />
+        <TopBar />
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>

@@ -1,28 +1,39 @@
 "use client";
 
 import { ReviewPanel } from "@/components/reviews/review-panel";
-import type { Submission, SubmissionFile } from "@/lib/data/types";
+import { FilePreview } from "@/components/reviews/previews/file-preview";
+import { useSubmissions } from "@/lib/submissions-context";
+import type { FileReviewStatus } from "@/lib/data/types";
 
 export function FileReview({
-  submission,
-  file,
+  submissionId,
+  fileId,
 }: {
-  submission: Submission;
-  file: SubmissionFile;
+  submissionId: string;
+  fileId: string;
 }) {
+  const { submissions, updateFileStatus } = useSubmissions();
+  const submission = submissions.find((s) => s.id === submissionId);
+  const file = submission?.files.find((f) => f.id === fileId);
+
+  if (!submission || !file) return null;
+
+  const handleStatusChange = (status: FileReviewStatus) => {
+    updateFileStatus(submissionId, fileId, status);
+  };
+
   return (
     <div className="flex h-full">
-      {/* Main content area - empty for now, will show file preview */}
-      <div className="min-w-0 flex-1 overflow-y-auto bg-background">
-        <div className="flex h-full items-center justify-center p-6">
-          <p className="text-sm text-muted-foreground">
-            File preview coming soon
-          </p>
-        </div>
+      {/* Main content area - file preview */}
+      <div className="min-w-0 flex-1 overflow-hidden bg-background">
+        <FilePreview file={file} />
       </div>
 
       {/* Right sidebar panel */}
-      <ReviewPanel initialStatus={file.reviewStatus} />
+      <ReviewPanel
+        initialStatus={file.reviewStatus}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 }

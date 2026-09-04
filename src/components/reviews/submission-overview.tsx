@@ -1,11 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { RelativeTime } from "@/components/reviews/relative-time";
 import { StatusIcon } from "@/components/reviews/status-icon";
-import type { Submission } from "@/lib/data/types";
+import { useSubmissions } from "@/lib/submissions-context";
 import { reviewProgress } from "@/lib/data/types";
 import { actionLabel, reviewStatusLabel } from "@/lib/format";
 
-export function SubmissionOverview({ submission }: { submission: Submission }) {
+export function SubmissionOverview({ submissionId }: { submissionId: string }) {
+  const { submissions } = useSubmissions();
+  const submission = submissions.find((s) => s.id === submissionId);
+
+  if (!submission) return null;
+
   const { approved, rejected, pending, decided, total } = reviewProgress(submission);
   const isReadyToMerge = pending === 0 && total > 0;
 
