@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Newsreader } from "next/font/google";
+import { AppShell } from "@/components/shell/app-shell";
+import { listSubmissions } from "@/lib/data/submissions";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const geist = Geist({
+  variable: "--font-sans-geist",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const newsreader = Newsreader({
+  variable: "--font-serif-newsreader",
   subsets: ["latin"],
 });
 
@@ -17,13 +19,17 @@ export const metadata: Metadata = {
   description: "Review agent output",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const submissions = await listSubmissions();
+
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geist.variable} ${newsreader.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className={`${geist.className} h-full overflow-hidden`}>
+        <AppShell submissions={submissions}>{children}</AppShell>
+      </body>
     </html>
   );
 }

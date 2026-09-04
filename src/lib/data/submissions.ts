@@ -44,6 +44,7 @@ function mapFile(file: SeedFile): SubmissionFile {
     size: file.size ?? null,
     action: file.action,
     message: file.message,
+    reviewStatus: "pending",
   };
 }
 
