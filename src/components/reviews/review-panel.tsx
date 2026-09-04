@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Check, MessageSquare, X } from "lucide-react";
 import type { FileAction, FileReviewStatus } from "@/types";
 
@@ -29,13 +29,15 @@ type Comment = {
 };
 
 export function ReviewPanel({
+  submissionId,
+  fileId,
   initialStatus,
-  initialComments = [],
   onStatusChange,
   fileAction = "created",
 }: {
+  submissionId: string;
+  fileId: string;
   initialStatus: FileReviewStatus;
-  initialComments?: Comment[];
   onStatusChange?: (status: FileReviewStatus, reason?: string) => void;
   fileAction?: FileAction;
 }) {
@@ -43,10 +45,54 @@ export function ReviewPanel({
   const [status, setStatus] = useState<FileReviewStatus>(initialStatus);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+
+  // Fetch comments from API
+  useEffect(() => {
+    async function loadComments() {
+      try {
+        const res = await fetch(`/api/comments/${submissionId}/${fileId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setComments(
+            data.map((c: { id: string; text: string; author: string; createdAt: string; replies?: Comment[] }) => ({
+              id: c.id,
+              text: c.text,
+              author: c.author,
+              createdAt: c.createdAt,
+              replies: c.replies || [],
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load comments:", error);
+      }
+    }
+    loadComments();
+  }, [submissionId, fileId]);
+
+  // Save comment to API
+  const saveComment = useCallback(
+    async (text: string, parentCommentId?: string, isRejectionReason?: boolean) => {
+      try {
+        const res = await fetch(`/api/comments/${submissionId}/${fileId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, parentCommentId, isRejectionReason }),
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (error) {
+        console.error("Failed to save comment:", error);
+      }
+      return null;
+    },
+    [submissionId, fileId]
+  );
 
   const isPending = status === "pending";
   const isDecided = status !== "pending";
@@ -58,8 +104,10 @@ export function ReviewPanel({
     onStatusChange?.("approved");
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (showRejectInput && rejectionReason.trim()) {
+      // Save rejection reason as a comment
+      await saveComment(rejectionReason, undefined, true);
       setStatus("rejected");
       onStatusChange?.("rejected", rejectionReason);
       setShowRejectInput(false);
@@ -74,33 +122,27 @@ export function ReviewPanel({
     onStatusChange?.("pending");
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) return;
-    const comment: Comment = {
-      id: `c${Date.now()}`,
-      text: newComment,
-      author: "You",
-      createdAt: new Date().toISOString(),
-      replies: [],
-    };
-    setComments([...comments, comment]);
+    const saved = await saveComment(newComment);
+    if (saved) {
+      setComments([...comments, { ...saved, replies: [] }]);
+    }
     setNewComment("");
   };
 
-  const handleAddReply = (parentId: string) => {
+  const handleAddReply = async (parentId: string) => {
     if (!replyText.trim()) return;
-    const reply: Comment = {
-      id: `r${Date.now()}`,
-      text: replyText,
-      author: "You",
-      createdAt: new Date().toISOString(),
-      replies: [],
-    };
-    setComments(
-      comments.map((c) =>
-        c.id === parentId ? { ...c, replies: [...c.replies, reply] } : c
-      )
-    );
+    const saved = await saveComment(replyText, parentId);
+    if (saved) {
+      setComments(
+        comments.map((c) =>
+          c.id === parentId
+            ? { ...c, replies: [...c.replies, { ...saved, replies: [] }] }
+            : c
+        )
+      );
+    }
     setReplyText("");
     setReplyingTo(null);
   };

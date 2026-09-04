@@ -31,6 +31,8 @@ export function FileReview({
 
       {/* Right sidebar panel */}
       <ReviewPanel
+        submissionId={submissionId}
+        fileId={fileId}
         initialStatus={file.reviewStatus}
         onStatusChange={handleStatusChange}
         fileAction={file.action}

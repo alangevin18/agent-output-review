@@ -8,103 +8,137 @@ type ViewMode = "rendered" | "source";
 
 // Simple markdown renderer (handles common cases)
 function renderMarkdown(md: string): string {
-  // First, handle tables
-  const tableRegex = /^\|(.+)\|\n\|[-| ]+\|\n((?:\|.+\|\n?)+)/gm;
-  let html = md.replace(tableRegex, (_, headerRow, bodyRows) => {
-    const headers = headerRow
-      .split("|")
-      .map((h: string) => h.trim())
-      .filter(Boolean);
-    const rows = bodyRows
-      .trim()
-      .split("\n")
-      .map((row: string) =>
-        row
-          .split("|")
-          .map((c: string) => c.trim())
-          .filter(Boolean)
-      );
+  // Process line by line for better control
+  const lines = md.split("\n");
+  const result: string[] = [];
+  let inList: "ul" | "ol" | null = null;
+  let inCodeBlock = false;
+  let codeBlockContent: string[] = [];
 
-    const headerHtml = headers
-      .map(
-        (h: string) =>
-          `<th class="border border-black/10 px-3 py-2 text-left font-medium bg-sidebar">${h}</th>`
-      )
-      .join("");
-    const bodyHtml = rows
-      .map(
-        (row: string[]) =>
-          `<tr>${row.map((c) => `<td class="border border-black/10 px-3 py-1.5">${c}</td>`).join("")}</tr>`
-      )
-      .join("");
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
 
-    return `<table class="w-full border-collapse my-4 text-sm"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
-  });
+    // Handle code blocks
+    if (line.startsWith("```")) {
+      if (inCodeBlock) {
+        result.push(
+          `<pre class="bg-black/5 rounded p-3 my-3 overflow-x-auto"><code class="text-xs font-mono">${codeBlockContent.join("\n")}</code></pre>`
+        );
+        codeBlockContent = [];
+        inCodeBlock = false;
+      } else {
+        if (inList) {
+          result.push(inList === "ul" ? "</ul>" : "</ol>");
+          inList = null;
+        }
+        inCodeBlock = true;
+      }
+      continue;
+    }
 
-  html = html
-    // Code blocks
-    .replace(
-      /```(\w*)\n([\s\S]*?)```/g,
-      '<pre class="bg-black/5 rounded p-3 my-3 overflow-x-auto"><code class="text-xs font-mono">$2</code></pre>'
-    )
-    // Inline code
-    .replace(
-      /`([^`]+)`/g,
-      '<code class="bg-black/5 px-1 py-0.5 rounded text-xs font-mono">$1</code>'
-    )
+    if (inCodeBlock) {
+      codeBlockContent.push(line);
+      continue;
+    }
+
+    // Check for list items
+    const bulletMatch = line.match(/^- (.+)$/);
+    const numberMatch = line.match(/^\d+\. (.+)$/);
+
+    if (bulletMatch) {
+      if (inList !== "ul") {
+        if (inList) result.push("</ol>");
+        result.push('<ul class="ml-6 list-disc my-2 space-y-1">');
+        inList = "ul";
+      }
+      result.push(`<li>${formatInline(bulletMatch[1])}</li>`);
+      continue;
+    }
+
+    if (numberMatch) {
+      if (inList !== "ol") {
+        if (inList) result.push("</ul>");
+        result.push('<ol class="ml-6 list-decimal my-2 space-y-1">');
+        inList = "ol";
+      }
+      result.push(`<li>${formatInline(numberMatch[1])}</li>`);
+      continue;
+    }
+
+    // Close any open list
+    if (inList && line.trim() !== "") {
+      result.push(inList === "ul" ? "</ul>" : "</ol>");
+      inList = null;
+    }
+
+    // Handle tables
+    if (line.startsWith("|") && lines[i + 1]?.match(/^\|[-| ]+\|$/)) {
+      if (inList) {
+        result.push(inList === "ul" ? "</ul>" : "</ol>");
+        inList = null;
+      }
+      const headers = line.split("|").map((h) => h.trim()).filter(Boolean);
+      i++; // Skip separator line
+      const rows: string[][] = [];
+      while (lines[i + 1]?.startsWith("|")) {
+        i++;
+        rows.push(lines[i].split("|").map((c) => c.trim()).filter(Boolean));
+      }
+      const headerHtml = headers
+        .map((h) => `<th class="border border-black/10 px-3 py-2 text-left font-medium bg-sidebar">${formatInline(h)}</th>`)
+        .join("");
+      const bodyHtml = rows
+        .map((row) => `<tr>${row.map((c) => `<td class="border border-black/10 px-3 py-1.5">${formatInline(c)}</td>`).join("")}</tr>`)
+        .join("");
+      result.push(`<table class="w-full border-collapse my-4 text-sm"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`);
+      continue;
+    }
+
     // Headers
-    .replace(/^### (.*)$/gm, '<h3 class="text-base font-semibold mt-4 mb-2">$1</h3>')
-    .replace(/^## (.*)$/gm, '<h2 class="text-lg font-semibold mt-5 mb-2">$1</h2>')
-    .replace(/^# (.*)$/gm, '<h1 class="text-xl font-bold mt-6 mb-3">$1</h1>')
-    // Bold and italic
+    if (line.startsWith("### ")) {
+      result.push(`<h3 class="text-base font-semibold mt-4 mb-2">${formatInline(line.slice(4))}</h3>`);
+      continue;
+    }
+    if (line.startsWith("## ")) {
+      result.push(`<h2 class="text-lg font-semibold mt-5 mb-2">${formatInline(line.slice(3))}</h2>`);
+      continue;
+    }
+    if (line.startsWith("# ")) {
+      result.push(`<h1 class="text-xl font-bold mt-6 mb-3">${formatInline(line.slice(2))}</h1>`);
+      continue;
+    }
+
+    // Horizontal rule
+    if (line === "---") {
+      result.push('<hr class="my-4 border-black/10" />');
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === "") {
+      result.push("<br />");
+      continue;
+    }
+
+    // Regular paragraph
+    result.push(`<p class="my-2">${formatInline(line)}</p>`);
+  }
+
+  // Close any remaining list
+  if (inList) {
+    result.push(inList === "ul" ? "</ul>" : "</ol>");
+  }
+
+  return result.join("\n");
+}
+
+// Format inline elements (bold, italic, code, links)
+function formatInline(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, '<code class="bg-black/5 px-1 py-0.5 rounded text-xs font-mono">$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    // Links
-    .replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" class="text-blue-600 underline">$1</a>'
-    )
-    // Horizontal rules
-    .replace(/^---$/gm, '<hr class="my-4 border-black/10" />');
-
-  // Handle numbered lists - wrap consecutive items in <ol>
-  html = html.replace(
-    /(^|\n)((?:\d+\. .+\n?)+)/gm,
-    (_, before, listBlock) => {
-      const items = listBlock
-        .trim()
-        .split("\n")
-        .map((line: string) => {
-          const match = line.match(/^\d+\. (.+)$/);
-          return match ? `<li>${match[1]}</li>` : line;
-        })
-        .join("");
-      return `${before}<ol class="ml-6 list-decimal my-2 space-y-1">${items}</ol>`;
-    }
-  );
-
-  // Handle bullet lists - wrap consecutive items in <ul>
-  html = html.replace(
-    /(^|\n)((?:- .+\n?)+)/gm,
-    (_, before, listBlock) => {
-      const items = listBlock
-        .trim()
-        .split("\n")
-        .map((line: string) => {
-          const match = line.match(/^- (.+)$/);
-          return match ? `<li>${match[1]}</li>` : line;
-        })
-        .join("");
-      return `${before}<ul class="ml-6 list-disc my-2 space-y-1">${items}</ul>`;
-    }
-  );
-
-  // Paragraphs (wrap text blocks)
-  html = html.replace(/\n\n/g, "</p><p class='my-2'>");
-  // Line breaks
-  html = html.replace(/\n/g, "<br />");
-
-  return `<p class="my-2">${html}</p>`;
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline">$1</a>');
 }
 
 export function MarkdownPreview({

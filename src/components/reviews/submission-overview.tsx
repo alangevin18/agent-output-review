@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { RelativeTime } from "@/components/reviews/relative-time";
 import { StatusIcon } from "@/components/reviews/status-icon";
@@ -12,17 +13,21 @@ function FinalizationSummary({
   approvedUpdated,
   approvedDeleted,
   rejectedCount,
+  onFinalize,
+  isLoading,
 }: {
   approvedCreated: number;
   approvedUpdated: number;
   approvedDeleted: number;
   rejectedCount: number;
+  onFinalize: () => void;
+  isLoading: boolean;
 }) {
   const totalApproved = approvedCreated + approvedUpdated + approvedDeleted;
   const hasApproved = totalApproved > 0;
 
   return (
-    <div className="mt-6 rounded-lg border border-black bg-primary/20 p-5">
+    <div className="mt-6 rounded-lg border border-black/20 bg-primary/20 p-5">
       <h2 className="text-base font-medium">Ready to finalize</h2>
 
       {hasApproved ? (
@@ -30,7 +35,7 @@ function FinalizationSummary({
           <p className="text-sm">
             <span className="font-medium">{totalApproved} approved change{totalApproved !== 1 ? "s" : ""}</span> will be applied:
           </p>
-          <ul className="mt-2 space-y-1 text-sm text-black">
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {approvedCreated > 0 && (
               <li className="flex items-center gap-2">
                 <span className="font-mono">+</span>
@@ -52,13 +57,13 @@ function FinalizationSummary({
           </ul>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-black">
+        <p className="mt-4 text-sm text-muted-foreground">
           No changes will be applied to Project Files.
         </p>
       )}
 
       {rejectedCount > 0 && (
-        <p className="mt-4 text-sm text-black">
+        <p className="mt-4 text-sm text-muted-foreground">
           {rejectedCount} rejected change{rejectedCount !== 1 ? "s" : ""} will be discarded.
         </p>
       )}
@@ -66,9 +71,15 @@ function FinalizationSummary({
       <div className="mt-5">
         <button
           type="button"
-          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/80"
+          onClick={onFinalize}
+          disabled={isLoading}
+          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/80 disabled:opacity-50"
         >
-          {hasApproved ? `Finalize & merge ${totalApproved} file${totalApproved !== 1 ? "s" : ""}` : "Finalize review"}
+          {isLoading
+            ? "Finalizing..."
+            : hasApproved
+              ? `Finalize & merge ${totalApproved} file${totalApproved !== 1 ? "s" : ""}`
+              : "Finalize review"}
         </button>
       </div>
     </div>
@@ -76,7 +87,9 @@ function FinalizationSummary({
 }
 
 export function SubmissionOverview({ submissionId }: { submissionId: string }) {
-  const { submissions } = useSubmissions();
+  const { submissions, finalizeSubmission } = useSubmissions();
+  const [isLoading, setIsLoading] = useState(false);
+  const [finalized, setFinalized] = useState(false);
   const submission = submissions.find((s) => s.id === submissionId);
 
   if (!submission) return null;
@@ -125,13 +138,34 @@ export function SubmissionOverview({ submissionId }: { submissionId: string }) {
         </>
       )}
 
-      {isReadyToFinalize && (
+      {isReadyToFinalize && !finalized && (
         <FinalizationSummary
           approvedCreated={approvedCreated}
           approvedUpdated={approvedUpdated}
           approvedDeleted={approvedDeleted}
           rejectedCount={rejected}
+          isLoading={isLoading}
+          onFinalize={async () => {
+            setIsLoading(true);
+            try {
+              await finalizeSubmission(submissionId);
+              setFinalized(true);
+            } catch (error) {
+              console.error("Failed to finalize:", error);
+            } finally {
+              setIsLoading(false);
+            }
+          }}
         />
+      )}
+
+      {finalized && (
+        <div className="mt-6 rounded-lg border border-black/20 bg-muted p-5">
+          <p className="text-sm font-medium">✓ Submission finalized</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Changes have been recorded.
+          </p>
+        </div>
       )}
 
       <hr className="mt-5 border-black" />
