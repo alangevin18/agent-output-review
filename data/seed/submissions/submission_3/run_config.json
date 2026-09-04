@@ -1,0 +1,25 @@
+{
+  "qc": {
+    "rin_threshold": 7.0,
+    "min_reads": 30000000,
+    "min_mapping_rate": 0.85,
+    "max_duplicate_rate": 0.30,
+    "outlier_detection": {
+      "enabled": true,
+      "method": "mahalanobis",
+      "threshold": 3.0
+    }
+  },
+  "batch_correction": {
+    "enabled": true,
+    "method": "ComBat-seq",
+    "batch_variable": "batch",
+    "covariates": ["group"],
+    "parametric": true
+  },
+  "pca": {
+    "n_components": 10,
+    "scale": true,
+    "center": true
+  }
+}

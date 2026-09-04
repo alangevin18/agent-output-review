@@ -1,0 +1,13 @@
+sample_id,group,batch,rin_score,total_reads,mapping_rate,duplicate_rate,gc_content,outlier_flag
+S01,treatment,batch_1,9.2,45000000,0.95,0.12,0.48,no
+S02,treatment,batch_1,8.8,42000000,0.94,0.11,0.47,no
+S03,treatment,batch_1,9.1,48000000,0.96,0.13,0.49,no
+S04,treatment,batch_2,8.5,39000000,0.93,0.14,0.48,no
+S05,treatment,batch_2,9.0,44000000,0.95,0.12,0.47,no
+S06,treatment,batch_2,8.7,41000000,0.94,0.11,0.48,no
+S07,control,batch_1,6.2,28000000,0.82,0.25,0.52,yes
+S08,control,batch_1,9.0,43000000,0.95,0.12,0.47,no
+S09,control,batch_1,8.9,46000000,0.96,0.11,0.48,no
+S10,control,batch_2,8.6,40000000,0.93,0.13,0.47,no
+S11,control,batch_2,9.3,47000000,0.96,0.12,0.48,no
+S12,control,batch_2,8.8,44000000,0.95,0.11,0.47,no

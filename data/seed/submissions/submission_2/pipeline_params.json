@@ -1,0 +1,18 @@
+{
+  "enrichment": {
+    "databases": ["KEGG", "GO_BP", "GO_MF", "GO_CC"],
+    "kegg_version": "2024.1",
+    "go_version": "2024-01-15",
+    "method": "hypergeometric",
+    "correction": "BH",
+    "significance_cutoff": 0.05,
+    "min_gene_set_size": 5,
+    "max_gene_set_size": 500
+  },
+  "input": {
+    "gene_list": "deg_results.csv",
+    "background": "all_tested_genes",
+    "gene_id_type": "symbol",
+    "organism": "hsa"
+  }
+}

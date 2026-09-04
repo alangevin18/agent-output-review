@@ -1,0 +1,306 @@
+{
+  "submissions": [
+    {
+      "id": "submission_1",
+      "title": "Differential expression analysis",
+      "description": "Ran DESeq2 on treatment vs control samples (n=6 per group). Identified 847 significantly differentially expressed genes.",
+      "author": "Agent",
+      "created_at": "2025-05-07T14:30:00Z",
+      "files": [
+        {
+          "id": "s1_f1",
+          "filename": "volcano_plot.png",
+          "path": "submissions/submission_1/volcano_plot.png",
+          "target_path": "results/volcano_plot.png",
+          "mime_type": "image/png",
+          "size": 245000,
+          "action": "created",
+          "message": "Volcano plot showing significantly differentially expressed genes. Red = upregulated, blue = downregulated."
+        },
+        {
+          "id": "s1_f2",
+          "filename": "deg_results.csv",
+          "path": "submissions/submission_1/deg_results.csv",
+          "target_path": "results/deg_results.csv",
+          "mime_type": "text/csv",
+          "size": 2400,
+          "action": "created",
+          "message": "Top 20 differentially expressed genes with fold change and p-values."
+        },
+        {
+          "id": "s1_f3",
+          "filename": "pipeline_params.json",
+          "path": "submissions/submission_1/pipeline_params.json",
+          "target_path": "config/pipeline_params.json",
+          "mime_type": "application/json",
+          "size": 300,
+          "action": "created",
+          "message": "DESeq2 pipeline parameters used for this analysis."
+        },
+        {
+          "id": "s1_f4",
+          "filename": "summary.md",
+          "path": "submissions/submission_1/summary.md",
+          "target_path": "reports/summary.md",
+          "mime_type": "text/markdown",
+          "size": 1200,
+          "action": "created",
+          "message": "Analysis summary with key findings and recommended next steps."
+        }
+      ]
+    },
+    {
+      "id": "submission_2",
+      "title": "Pathway enrichment analysis",
+      "description": "Performed KEGG and GO pathway enrichment on the 847 significant DEGs. Identified 23 significantly enriched pathways. Updated analysis config and regenerated heatmap.",
+      "author": "Agent",
+      "created_at": "2025-05-08T09:15:00Z",
+      "files": [
+        {
+          "id": "s2_f1",
+          "filename": "analysis_config.json",
+          "path": "submissions/submission_2/analysis_config.json",
+          "target_path": "config/analysis_config.json",
+          "mime_type": "application/json",
+          "size": 1200,
+          "action": "updated",
+          "message": "Changed significance threshold from 0.01 to 0.05 and switched correction from Bonferroni to Benjamini-Hochberg."
+        },
+        {
+          "id": "s2_f2",
+          "filename": "heatmap.png",
+          "path": "submissions/submission_2/heatmap.png",
+          "target_path": "results/heatmap.png",
+          "mime_type": "image/png",
+          "size": 380000,
+          "action": "updated",
+          "message": "Regenerated with z-score normalization instead of raw values, and added hierarchical clustering."
+        },
+        {
+          "id": "s2_f3",
+          "filename": "pathway_enrichment.csv",
+          "path": "submissions/submission_2/pathway_enrichment.csv",
+          "target_path": "results/pathway_enrichment.csv",
+          "mime_type": "text/csv",
+          "size": 15000,
+          "action": "created",
+          "message": "Enriched pathways from KEGG and GO analysis, sorted by adjusted p-value."
+        },
+        {
+          "id": "s2_f4",
+          "filename": "methods.md",
+          "path": "submissions/submission_2/methods.md",
+          "target_path": "reports/methods.md",
+          "mime_type": "text/markdown",
+          "size": 2100,
+          "action": "created",
+          "message": "Methods section for enrichment analysis, suitable for manuscript."
+        },
+        {
+          "id": "s2_f5",
+          "filename": "normalized_counts.csv",
+          "target_path": "data/normalized_counts.csv",
+          "action": "deleted",
+          "message": "Removing intermediate normalized counts file — superseded by final results table."
+        }
+      ]
+    },
+    {
+      "id": "submission_3",
+      "title": "Sample QC and batch correction",
+      "description": "Ran quality control on all 12 samples. Detected and corrected for batch effects between sequencing runs. Sample S07 flagged as potential outlier.",
+      "author": "Agent",
+      "created_at": "2025-05-08T16:45:00Z",
+      "files": [
+        {
+          "id": "s3_f1",
+          "filename": "sample_metadata.csv",
+          "path": "submissions/submission_3/sample_metadata.csv",
+          "target_path": "data/sample_metadata.csv",
+          "mime_type": "text/csv",
+          "size": 4500,
+          "action": "updated",
+          "message": "Added QC columns (RIN score, mapping rate, duplicate rate) and flagged sample S07 as outlier."
+        },
+        {
+          "id": "s3_f2",
+          "filename": "run_config.json",
+          "path": "submissions/submission_3/run_config.json",
+          "target_path": "config/run_config.json",
+          "mime_type": "application/json",
+          "size": 950,
+          "action": "updated",
+          "message": "Enabled batch correction (ComBat-seq) and added outlier detection threshold."
+        },
+        {
+          "id": "s3_f3",
+          "filename": "pca_plot.png",
+          "path": "submissions/submission_3/pca_plot.png",
+          "target_path": "results/pca_plot.png",
+          "mime_type": "image/png",
+          "size": 195000,
+          "action": "created",
+          "message": "PCA plot of all 12 samples. S07 appears as an outlier in PC1."
+        },
+        {
+          "id": "s3_f4",
+          "filename": "qc_report.md",
+          "path": "submissions/submission_3/qc_report.md",
+          "target_path": "reports/qc_report.md",
+          "mime_type": "text/markdown",
+          "size": 4800,
+          "action": "created",
+          "message": "Quality control report with per-sample metrics and recommendation regarding S07."
+        }
+      ]
+    },
+    {
+      "id": "submission_4",
+      "title": "Complete analysis outputs",
+      "description": "Full expression matrix, enhanced visualizations, pathway databases (KEGG + GO), and detailed supplementary methods. 8 files.",
+      "author": "Agent",
+      "created_at": "2025-05-09T10:00:00Z",
+      "files": [
+        {
+          "id": "s4_f1",
+          "filename": "full_expression_matrix.csv",
+          "path": "submissions/submission_4/full_expression_matrix.csv",
+          "target_path": "data/full_expression_matrix.csv",
+          "mime_type": "text/csv",
+          "size": 450000,
+          "action": "created",
+          "message": "Complete normalized expression matrix — 1,000 genes x 12 samples."
+        },
+        {
+          "id": "s4_f2",
+          "filename": "fig_volcano_enhanced.png",
+          "path": "submissions/submission_4/fig_volcano_enhanced.png",
+          "target_path": "results/figures/fig_volcano_enhanced.png",
+          "mime_type": "image/png",
+          "size": 280000,
+          "action": "created",
+          "message": "Enhanced volcano plot with gene labels and significance annotations."
+        },
+        {
+          "id": "s4_f3",
+          "filename": "fig_heatmap_clustered.png",
+          "path": "submissions/submission_4/fig_heatmap_clustered.png",
+          "target_path": "results/figures/fig_heatmap_clustered.png",
+          "mime_type": "image/png",
+          "size": 350000,
+          "action": "created",
+          "message": "Clustered heatmap of top 50 DEGs with hierarchical clustering."
+        },
+        {
+          "id": "s4_f4",
+          "filename": "fig_ma_plot.png",
+          "path": "submissions/submission_4/fig_ma_plot.png",
+          "target_path": "results/figures/fig_ma_plot.png",
+          "mime_type": "image/png",
+          "size": 220000,
+          "action": "created",
+          "message": "MA plot showing fold change vs mean expression."
+        },
+        {
+          "id": "s4_f5",
+          "filename": "deseq2_params.json",
+          "path": "submissions/submission_4/deseq2_params.json",
+          "target_path": "config/deseq2_params.json",
+          "mime_type": "application/json",
+          "size": 1800,
+          "action": "created",
+          "message": "Detailed DESeq2 parameters including per-sample size factors and contrast definitions."
+        },
+        {
+          "id": "s4_f6",
+          "filename": "supplementary_methods.md",
+          "path": "submissions/submission_4/supplementary_methods.md",
+          "target_path": "reports/supplementary_methods.md",
+          "mime_type": "text/markdown",
+          "size": 5200,
+          "action": "created",
+          "message": "Full supplementary methods section with software versions and parameter details."
+        },
+        {
+          "id": "s4_f7",
+          "filename": "gene_ontology.csv",
+          "path": "submissions/submission_4/gene_ontology.csv",
+          "target_path": "results/gene_ontology.csv",
+          "mime_type": "text/csv",
+          "size": 8500,
+          "action": "created",
+          "message": "Gene Ontology enrichment results — 50 significant terms."
+        },
+        {
+          "id": "s4_f8",
+          "filename": "kegg_pathways.csv",
+          "path": "submissions/submission_4/kegg_pathways.csv",
+          "target_path": "results/kegg_pathways.csv",
+          "mime_type": "text/csv",
+          "size": 5200,
+          "action": "created",
+          "message": "KEGG pathway enrichment results — 30 significant pathways."
+        }
+      ]
+    },
+    {
+      "id": "submission_5",
+      "title": "Re-analysis with updated parameters",
+      "description": "Re-ran analysis excluding sample S07, with stricter thresholds and additional covariates. Includes pipeline log and protocol document.",
+      "author": "Agent",
+      "created_at": "2025-05-09T14:30:00Z",
+      "files": [
+        {
+          "id": "s5_f1",
+          "filename": "analysis_config.json",
+          "path": "submissions/submission_5/analysis_config.json",
+          "target_path": "config/analysis_config.json",
+          "mime_type": "application/json",
+          "size": 1400,
+          "action": "updated",
+          "message": "Updated config: excluded S07, added sex covariate, lowered log2FC cutoff to 0.5 for broader discovery."
+        },
+        {
+          "id": "s5_f2",
+          "filename": "empty_results.csv",
+          "path": "submissions/submission_5/empty_results.csv",
+          "target_path": "results/sensitivity/empty_results.csv",
+          "mime_type": "text/csv",
+          "size": 100,
+          "action": "created",
+          "message": "Sensitivity analysis results — no genes significant at p < 0.001 after removing S07 (expected; confirms S07 drives the signal)."
+        },
+        {
+          "id": "s5_f3",
+          "filename": "deep_config.json",
+          "path": "submissions/submission_5/deep_config.json",
+          "target_path": "config/nested/pipeline/deep_config.json",
+          "mime_type": "application/json",
+          "size": 2200,
+          "action": "created",
+          "message": "Full pipeline configuration with all tool versions and parameters."
+        },
+        {
+          "id": "s5_f4",
+          "filename": "protocol.pdf",
+          "path": "submissions/submission_5/protocol.pdf",
+          "target_path": "docs/protocol.pdf",
+          "mime_type": "application/pdf",
+          "size": 15000,
+          "action": "created",
+          "message": "Experimental protocol document for the RNA-seq analysis."
+        },
+        {
+          "id": "s5_f5",
+          "filename": "analysis_log.txt",
+          "path": "submissions/submission_5/analysis_log.txt",
+          "target_path": "logs/analysis_log.txt",
+          "mime_type": "text/plain",
+          "size": 3800,
+          "action": "created",
+          "message": "Full pipeline execution log with timestamps and warnings."
+        }
+      ]
+    }
+  ]
+}

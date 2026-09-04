@@ -1,0 +1,29 @@
+{
+  "analysis": {
+    "method": "DESeq2",
+    "version": "1.42.0",
+    "design_formula": "~ treatment"
+  },
+  "thresholds": {
+    "significance_level": 0.01,
+    "log2fc_cutoff": 1.5,
+    "multiple_testing_correction": "bonferroni",
+    "independent_filtering": false,
+    "min_count_filter": 5
+  },
+  "data": {
+    "input_file": "raw_counts.csv",
+    "samples": 12,
+    "treatment_groups": ["treatment", "control"],
+    "samples_per_group": 6,
+    "reference_level": "control"
+  },
+  "normalization": {
+    "method": "median_of_ratios",
+    "size_factors_range": [0.85, 1.22]
+  },
+  "output": {
+    "results_table": "deg_results.csv",
+    "volcano_plot": "volcano_plot.png"
+  }
+}

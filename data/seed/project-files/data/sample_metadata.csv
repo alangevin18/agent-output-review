@@ -1,0 +1,13 @@
+sample_id,group,batch
+S01,treatment,batch_1
+S02,treatment,batch_1
+S03,treatment,batch_1
+S04,treatment,batch_2
+S05,treatment,batch_2
+S06,treatment,batch_2
+S07,control,batch_1
+S08,control,batch_1
+S09,control,batch_1
+S10,control,batch_2
+S11,control,batch_2
+S12,control,batch_2

@@ -1,0 +1,37 @@
+{
+  "analysis": {
+    "method": "DESeq2",
+    "version": "1.42.0",
+    "design_formula": "~ treatment + batch + sex"
+  },
+  "thresholds": {
+    "significance_level": 0.01,
+    "log2fc_cutoff": 0.5,
+    "multiple_testing_correction": "BH",
+    "independent_filtering": true,
+    "min_count_filter": 5
+  },
+  "data": {
+    "input_file": "raw_counts.csv",
+    "samples": 12,
+    "treatment_groups": ["treatment", "control"],
+    "samples_per_group": 6,
+    "reference_level": "control",
+    "excluded_samples": ["S07"]
+  },
+  "normalization": {
+    "method": "median_of_ratios",
+    "size_factors_range": [0.89, 1.15]
+  },
+  "batch_correction": {
+    "enabled": true,
+    "method": "ComBat-seq",
+    "covariates": ["treatment", "sex"]
+  },
+  "output": {
+    "results_table": "deg_results.csv",
+    "volcano_plot": "volcano_plot.png",
+    "summary": "summary.md",
+    "expression_matrix": "full_expression_matrix.csv"
+  }
+}

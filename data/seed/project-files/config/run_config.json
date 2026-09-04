@@ -1,0 +1,19 @@
+{
+  "qc": {
+    "rin_threshold": 7.0,
+    "min_reads": 30000000,
+    "min_mapping_rate": 0.85,
+    "max_duplicate_rate": 0.30,
+    "outlier_detection": {
+      "enabled": false
+    }
+  },
+  "batch_correction": {
+    "enabled": false
+  },
+  "pca": {
+    "n_components": 5,
+    "scale": true,
+    "center": true
+  }
+}

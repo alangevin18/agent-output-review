@@ -1,0 +1,32 @@
+[2025-05-08 16:00:01] INFO: Starting RNA-seq analysis pipeline v2.1.0
+[2025-05-08 16:00:01] INFO: Loading configuration from run_config.json
+[2025-05-08 16:00:02] INFO: Input samples: 12 (6 treatment, 6 control)
+[2025-05-08 16:00:02] WARN: Sample S07 has RIN score 6.2 (below threshold 7.0)
+[2025-05-08 16:00:03] INFO: Running FastQC on 12 samples...
+[2025-05-08 16:02:15] INFO: FastQC complete. All samples passed basic quality metrics.
+[2025-05-08 16:02:15] WARN: Sample S07 shows elevated adapter content (12.3%)
+[2025-05-08 16:02:16] INFO: Running Trimmomatic with parameters: LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+[2025-05-08 16:05:30] INFO: Trimming complete. Average reads retained: 96.2%
+[2025-05-08 16:05:30] WARN: S07 retained only 88.1% of reads (lowest in cohort)
+[2025-05-08 16:05:31] INFO: Aligning to GRCh38 (Ensembl 108) with STAR v2.7.10b
+[2025-05-08 16:15:42] INFO: Alignment complete. Mean mapping rate: 93.7%
+[2025-05-08 16:15:42] WARN: S07 mapping rate 82.0% (mean excluding S07: 94.8%)
+[2025-05-08 16:15:43] INFO: Generating gene-level counts with featureCounts
+[2025-05-08 16:17:01] INFO: Count matrix: 18,432 genes x 12 samples
+[2025-05-08 16:17:02] INFO: Filtering low-count genes (min 10 counts)
+[2025-05-08 16:17:02] INFO: Retained 2,847 of 18,432 genes
+[2025-05-08 16:17:03] INFO: Running DESeq2 differential expression analysis
+[2025-05-08 16:17:03] INFO: Design formula: ~ treatment + batch
+[2025-05-08 16:17:10] INFO: Size factor range: [0.72, 1.15]
+[2025-05-08 16:17:10] WARN: S07 size factor 0.72 is an outlier (>2 SD from mean)
+[2025-05-08 16:17:15] INFO: DESeq2 complete. 847 significant genes (adj.p < 0.05, |log2FC| > 1)
+[2025-05-08 16:17:15] INFO: Upregulated: 412, Downregulated: 435
+[2025-05-08 16:17:16] INFO: Running batch effect correction with ComBat-seq
+[2025-05-08 16:17:20] INFO: Batch correction complete. PC2 variance reduced from 12.1% to 2.3%
+[2025-05-08 16:17:21] INFO: Generating PCA plot
+[2025-05-08 16:17:22] INFO: Outlier detection: S07 Mahalanobis distance = 4.2 (threshold: 3.0)
+[2025-05-08 16:17:22] WARN: Sample S07 flagged as outlier. Recommend exclusion or sensitivity analysis.
+[2025-05-08 16:17:23] INFO: Generating volcano plot
+[2025-05-08 16:17:24] INFO: Generating heatmap
+[2025-05-08 16:17:25] INFO: Writing results to output directory
+[2025-05-08 16:17:26] INFO: Pipeline complete. Total runtime: 17m 25s

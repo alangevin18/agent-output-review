@@ -1,0 +1,50 @@
+{
+  "pipeline": {
+    "name": "rna-seq-advanced",
+    "version": "2.1.0",
+    "stages": {
+      "qc": {
+        "tools": {
+          "fastqc": { "version": "0.11.9", "threads": 4 },
+          "multiqc": { "version": "1.14", "template": "default" }
+        },
+        "thresholds": {
+          "min_quality": 20,
+          "min_length": 36,
+          "adapter_stringency": 0.9
+        }
+      },
+      "alignment": {
+        "tool": "STAR",
+        "version": "2.7.10b",
+        "parameters": {
+          "sjdbOverhang": 149,
+          "outSAMtype": "BAM SortedByCoordinate",
+          "quantMode": "GeneCounts",
+          "twopassMode": "Basic"
+        },
+        "reference": {
+          "genome": "GRCh38",
+          "annotation": "Ensembl_108",
+          "index_path": "/ref/star_index/"
+        }
+      },
+      "quantification": {
+        "tool": "featureCounts",
+        "version": "2.0.6",
+        "parameters": {
+          "strand": 0,
+          "min_mapping_quality": 10,
+          "count_multimapping": false,
+          "fraction": false
+        }
+      },
+      "differential_expression": {
+        "tool": "DESeq2",
+        "version": "1.42.0",
+        "design": "~ treatment + batch",
+        "contrasts": ["treatment_vs_control"]
+      }
+    }
+  }
+}
