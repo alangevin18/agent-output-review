@@ -301,6 +301,45 @@
           "message": "Full pipeline execution log with timestamps and warnings."
         }
       ]
+    },
+    {
+      "id": "submission_6",
+      "title": "Conflict test submission",
+      "description": "This submission tests conflict detection scenarios.",
+      "author": "Agent",
+      "created_at": "2025-05-10T10:00:00Z",
+      "files": [
+        {
+          "id": "s6_f1",
+          "filename": "volcano_plot.png",
+          "path": "submissions/submission_6/volcano_plot.png",
+          "target_path": "results/volcano_plot.png",
+          "mime_type": "image/png",
+          "size": 245000,
+          "action": "created",
+          "message": "Alternative volcano plot with different color scheme. Tests: CREATED -> ALREADY EXISTS conflict (if submission_1 merged first)."
+        },
+        {
+          "id": "s6_f2",
+          "filename": "normalized_counts.csv",
+          "path": "submissions/submission_6/normalized_counts.csv",
+          "target_path": "data/normalized_counts.csv",
+          "mime_type": "text/csv",
+          "size": 5000,
+          "action": "updated",
+          "message": "Updated normalized counts with batch correction. Tests: UPDATED -> FILE DELETED conflict (if submission_2 merged first)."
+        },
+        {
+          "id": "s6_f3",
+          "filename": "analysis_config.json",
+          "path": "submissions/submission_6/analysis_config.json",
+          "target_path": "config/analysis_config.json",
+          "mime_type": "application/json",
+          "size": 1500,
+          "action": "updated",
+          "message": "Final config with all optimizations. Tests: FILE MODIFIED conflict (if submission_2 or submission_5 merged first)."
+        }
+      ]
     }
   ]
 }

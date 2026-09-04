@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { FileReviewStatus, Submission } from "@/types";
 import type { SubmissionReview, ActivityEntry } from "@/types/db";
+import { useDrive } from "@/lib/drive-context";
 
 type SubmissionsContextType = {
   submissions: Submission[];
@@ -32,6 +33,7 @@ export function SubmissionsProvider({
   initialSubmissions: Submission[];
   children: ReactNode;
 }) {
+  const { refreshDrive } = useDrive();
   const [submissions, setSubmissions] = useState(initialSubmissions);
   const [finalizedIds, setFinalizedIds] = useState<Set<string>>(new Set());
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
@@ -136,8 +138,11 @@ export function SubmissionsProvider({
       // Add to finalized set and activity
       setFinalizedIds((prev) => new Set([...prev, submissionId]));
       setActivity((prev) => [data.activity, ...prev]);
+
+      // Refresh Drive tree after project-files change
+      await refreshDrive();
     },
-    [submissions]
+    [submissions, refreshDrive]
   );
 
   return (

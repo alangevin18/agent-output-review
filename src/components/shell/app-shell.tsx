@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   ChevronDown,
   ChevronRight,
+  FileText,
   Folder,
   HelpCircle,
   History,
@@ -15,8 +16,10 @@ import {
   Search,
   Settings,
 } from "lucide-react";
+import type { FileEntry } from "@/app/api/drive/route";
 import { StatusIcon } from "@/components/reviews/status-icon";
 import { Tooltip } from "@/components/ui/tooltip";
+import { useDrive } from "@/lib/drive-context";
 import { useSubmissions } from "@/lib/submissions-context";
 import type { Submission } from "@/types";
 import {
@@ -298,6 +301,102 @@ function SubmissionCategory({
   );
 }
 
+function DriveTreeItem({ entry, depth = 0 }: { entry: FileEntry; depth?: number }) {
+  const [expanded, setExpanded] = useState(depth === 0);
+
+  if (entry.type === "file") {
+    return (
+      <Link
+        href={`/drive/${entry.path}`}
+        className="flex items-center gap-1.5 rounded px-2 py-1 text-sm hover:bg-muted"
+        style={{ paddingLeft: `${8 + depth * 16}px` }}
+      >
+        <FileText className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="truncate">{entry.name}</span>
+      </Link>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm hover:bg-muted"
+        style={{ paddingLeft: `${8 + depth * 16}px` }}
+      >
+        <ChevronRight
+          className={`size-3 shrink-0 text-muted-foreground transition-transform ${
+            expanded ? "rotate-90" : ""
+          }`}
+        />
+        <Folder className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="truncate">{entry.name}</span>
+      </button>
+      {expanded && entry.children?.map((child) => (
+        <DriveTreeItem key={child.path} entry={child} depth={depth + 1} />
+      ))}
+    </div>
+  );
+}
+
+function DriveSection() {
+  const { files } = useDrive();
+  const [open, setOpen] = useState(true);
+
+  return (
+    <section className="flex min-h-0 flex-col border-t border-black">
+      <div className="flex h-10 shrink-0 items-center gap-1.5 px-3">
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          className="flex items-center gap-1.5 text-left text-sm font-medium text-foreground"
+        >
+          <ExpandChevron open={open} className="size-4 shrink-0" />
+        </button>
+        <Link
+          href="/drive"
+          className="flex-1 text-sm font-medium text-foreground hover:underline"
+        >
+          Drive
+        </Link>
+        {open && (
+          <>
+            <IconButton label="Search Drive">
+              <Search className="size-4" strokeWidth={1.5} />
+            </IconButton>
+            <button
+              type="button"
+              className="flex h-6 items-center gap-0.5 px-1.5 text-sm font-medium text-foreground hover:bg-primary/30"
+            >
+              <Plus className="size-3" strokeWidth={1.75} />
+              Upload
+            </button>
+            <IconButton label="Drive layout">
+              <LayoutGrid className="size-4" strokeWidth={1.5} />
+            </IconButton>
+          </>
+        )}
+      </div>
+      <div className={`bg-primary ${open ? "h-0.5" : "h-px"}`} />
+      {open && (
+        <div className="min-h-0 overflow-y-auto px-1 pb-3">
+          {files.length === 0 ? (
+            <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+              No files yet
+            </p>
+          ) : (
+            files.map((entry) => (
+              <DriveTreeItem key={entry.path} entry={entry} />
+            ))
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function ProjectSidebar() {
   const { submissions, finalizedIds, activity } = useSubmissions();
 
@@ -344,7 +443,7 @@ function ProjectSidebar() {
         </div>
       </div>
 
-      <SidebarSection title="Drive" actionLabel="Upload" empty="No files yet" defaultOpen={false} />
+      <DriveSection />
 
       <SidebarSection title="Reviews" grow>
         <SubmissionCategory
@@ -399,6 +498,12 @@ function TopBar() {
   const crumbs = ["Quick Tasks"];
   if (segments[0] === "activity") {
     crumbs.push("Activity");
+  } else if (segments[0] === "drive") {
+    crumbs.push("Drive");
+    if (segments.length > 1) {
+      // Add file path
+      crumbs.push(segments.slice(1).join("/"));
+    }
   } else if (submission) {
     crumbs.push("Reviews");
     if (file) crumbs.push(file.filename);

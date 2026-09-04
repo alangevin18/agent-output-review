@@ -56,10 +56,12 @@ export function CSVPreview({
   seedPath,
   filename,
   action,
+  showHeader = true,
 }: {
   seedPath: string;
   filename: string;
   action: FileAction;
+  showHeader?: boolean;
 }) {
   const [data, setData] = useState<CSVData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,14 +109,16 @@ export function CSVPreview({
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-black/10 bg-sidebar px-4 py-2">
-        <div className="flex items-center gap-3">
-          <div>
-            <p className="text-sm font-medium">{filename}</p>
-            <p className="text-xs text-muted-foreground">{seedPath}</p>
+        {showHeader && (
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-sm font-medium">{filename}</p>
+              <p className="text-xs text-muted-foreground">{seedPath}</p>
+            </div>
+            <ActionPill action={action} />
           </div>
-          <ActionPill action={action} />
-        </div>
-        <p className="text-xs text-muted-foreground">
+        )}
+        <p className={`text-xs text-muted-foreground ${!showHeader ? "ml-auto" : ""}`}>
           {data.totalRows.toLocaleString()} rows · {data.totalCols} columns
         </p>
       </div>

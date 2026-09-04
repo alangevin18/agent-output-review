@@ -88,22 +88,30 @@ export async function POST(
           }
           const sourcePath = join(SEED_DIR, file.seedPath);
 
+          console.log(`[Finalize] Copying ${file.action} file:`, {
+            fileId,
+            sourcePath,
+            targetPath,
+          });
+
           // Ensure target directory exists
           await mkdir(dirname(targetPath), { recursive: true });
 
-          // Copy the file
+          // Copy the file (works even if target doesn't exist)
           await copyFile(sourcePath, targetPath);
           mergeResults.push({ fileId, action: file.action, success: true });
+          console.log(`[Finalize] Successfully copied ${fileId}`);
 
         } else if (file.action === "deleted") {
           // Delete from project-files
+          console.log(`[Finalize] Deleting file:`, { fileId, targetPath });
           await unlink(targetPath);
           mergeResults.push({ fileId, action: file.action, success: true });
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : "Unknown error";
         mergeResults.push({ fileId, action: file.action, success: false, error: errorMsg });
-        console.error(`Failed to merge file ${fileId}:`, error);
+        console.error(`[Finalize] Failed to merge file ${fileId}:`, error);
       }
     }
 

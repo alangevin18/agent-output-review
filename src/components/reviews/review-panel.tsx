@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Check, MessageSquare, X } from "lucide-react";
 import type { FileAction, FileReviewStatus } from "@/types";
+import type { ConflictStatus } from "@/app/api/files/conflict/route";
 
 function formatTimestamp(isoString: string): string {
   const date = new Date(isoString);
@@ -34,12 +35,15 @@ export function ReviewPanel({
   initialStatus,
   onStatusChange,
   fileAction = "created",
+  decisionLocked = false,
 }: {
   submissionId: string;
   fileId: string;
   initialStatus: FileReviewStatus;
   onStatusChange?: (status: FileReviewStatus, reason?: string) => void;
   fileAction?: FileAction;
+  conflict?: ConflictStatus | null;
+  decisionLocked?: boolean;
 }) {
   const isDeleting = fileAction === "deleted";
   const [status, setStatus] = useState<FileReviewStatus>(initialStatus);
@@ -49,6 +53,11 @@ export function ReviewPanel({
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+
+  // Keep status in sync when parent auto-approves
+  useEffect(() => {
+    setStatus(initialStatus);
+  }, [initialStatus]);
 
   // Fetch comments from API
   useEffect(() => {
@@ -163,19 +172,28 @@ export function ReviewPanel({
           <p className="text-xs font-medium text-muted-foreground">Status</p>
           <div className="mt-1.5 flex items-center gap-2">
             {status === "approved" && (
-              <>
-                <span className="flex items-center gap-1.5 rounded-full bg-primary/40 px-2.5 py-1 text-xs font-medium">
-                  <Check className="size-3" strokeWidth={2} />
-                  Approved
-                </span>
-                <button
-                  type="button"
-                  onClick={handleChangeDecision}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Change decision
-                </button>
-              </>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 rounded-full bg-primary/40 px-2.5 py-1 text-xs font-medium">
+                    <Check className="size-3" strokeWidth={2} />
+                    {decisionLocked ? "Auto-approved" : "Approved"}
+                  </span>
+                  {!decisionLocked && (
+                    <button
+                      type="button"
+                      onClick={handleChangeDecision}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Change decision
+                    </button>
+                  )}
+                </div>
+                {decisionLocked && (
+                  <p className="text-xs text-muted-foreground">
+                    File was already deleted — nothing to decide.
+                  </p>
+                )}
+              </div>
             )}
             {status === "rejected" && (
               <div className="flex flex-col gap-1.5">
@@ -184,13 +202,15 @@ export function ReviewPanel({
                     <X className="size-3" strokeWidth={2} />
                     Rejected
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleChangeDecision}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Change decision
-                  </button>
+                  {!decisionLocked && (
+                    <button
+                      type="button"
+                      onClick={handleChangeDecision}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Change decision
+                    </button>
+                  )}
                 </div>
                 {rejectionReason && (
                   <p className="text-xs text-muted-foreground">
@@ -199,7 +219,12 @@ export function ReviewPanel({
                 )}
               </div>
             )}
-            {status === "pending" && (
+            {status === "pending" && decisionLocked && (
+              <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                Resolving…
+              </span>
+            )}
+            {status === "pending" && !decisionLocked && (
               <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
                 Pending Review
               </span>
@@ -307,7 +332,7 @@ export function ReviewPanel({
       </div>
 
       {/* Action buttons - anchored to bottom */}
-      {isPending && (
+      {isPending && !decisionLocked && (
         <div className="shrink-0 border-t border-black bg-sidebar p-4">
           {showRejectInput ? (
             <div className="space-y-2">

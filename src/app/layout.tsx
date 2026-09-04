@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Newsreader } from "next/font/google";
 import { AppShell } from "@/components/shell/app-shell";
+import { DriveProvider } from "@/lib/drive-context";
 import { SubmissionsProvider } from "@/lib/submissions-context";
 import { listSubmissions } from "@/lib/data/submissions";
 import "./globals.css";
@@ -31,9 +32,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geist.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className={`${geist.className} h-full overflow-hidden`}>
-        <SubmissionsProvider initialSubmissions={submissions}>
-          <AppShell>{children}</AppShell>
-        </SubmissionsProvider>
+        <DriveProvider>
+          <SubmissionsProvider initialSubmissions={submissions}>
+            <AppShell>{children}</AppShell>
+          </SubmissionsProvider>
+        </DriveProvider>
       </body>
     </html>
   );

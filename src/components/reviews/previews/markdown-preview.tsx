@@ -145,10 +145,12 @@ export function MarkdownPreview({
   seedPath,
   filename,
   action,
+  showHeader = true,
 }: {
   seedPath: string;
   filename: string;
   action: FileAction;
+  showHeader?: boolean;
 }) {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -190,14 +192,16 @@ export function MarkdownPreview({
   return (
     <div className="flex h-full flex-col">
       {/* Header with tabs */}
-      <div className="flex shrink-0 items-center justify-between border-b border-black/10 bg-sidebar px-4 py-2">
-        <div className="flex items-center gap-3">
-          <div>
-            <p className="text-sm font-medium">{filename}</p>
-            <p className="text-xs text-muted-foreground">{seedPath}</p>
+      <div className={`flex shrink-0 items-center justify-between border-b border-black/10 bg-sidebar px-4 py-2 ${!showHeader ? "justify-end" : ""}`}>
+        {showHeader && (
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-sm font-medium">{filename}</p>
+              <p className="text-xs text-muted-foreground">{seedPath}</p>
+            </div>
+            <ActionPill action={action} />
           </div>
-          <ActionPill action={action} />
-        </div>
+        )}
         <div className="flex rounded border border-black/10 text-xs">
           <button
             onClick={() => setMode("rendered")}
