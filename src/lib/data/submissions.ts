@@ -69,3 +69,8 @@ export async function listSubmissions(): Promise<Submission[]> {
 
   return manifest.submissions.map(mapSubmission);
 }
+
+export async function getSubmission(id: string): Promise<Submission | null> {
+  const submissions = await listSubmissions();
+  return submissions.find((submission) => submission.id === id) ?? null;
+}

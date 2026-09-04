@@ -28,14 +28,29 @@ export type Submission = {
 
 /** Files with an approve/reject decision, over total files. Merge is separate. */
 export function reviewProgress(submission: Submission): {
+  approved: number;
+  rejected: number;
+  pending: number;
   decided: number;
   total: number;
 } {
-  const decided = submission.files.filter(
-    (file) => file.reviewStatus !== "pending",
-  ).length;
+  let approved = 0;
+  let rejected = 0;
+  let pending = 0;
 
-  return { decided, total: submission.files.length };
+  for (const file of submission.files) {
+    if (file.reviewStatus === "approved") approved += 1;
+    else if (file.reviewStatus === "rejected") rejected += 1;
+    else pending += 1;
+  }
+
+  return {
+    approved,
+    rejected,
+    pending,
+    decided: approved + rejected,
+    total: submission.files.length,
+  };
 }
 
 export function sortSubmissionsByProgress(

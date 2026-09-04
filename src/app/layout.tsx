@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Review agent output",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const submissions = await listSubmissions();
 

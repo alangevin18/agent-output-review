@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  Check,
   ChevronDown,
   ChevronRight,
-  Circle,
   Folder,
   HelpCircle,
   LayoutGrid,
@@ -16,16 +16,18 @@ import {
   Settings,
   Share2,
 } from "lucide-react";
+import { StatusIcon } from "@/components/reviews/status-icon";
 import {
   reviewProgress,
   sortFilesForReview,
   sortSubmissionsByProgress,
   type Submission,
 } from "@/lib/data/types";
+import { formatShortDate } from "@/lib/format";
 
 function ExpandChevron({
   open,
-  className = "size-3.5 shrink-0",
+  className = "size-3 shrink-0",
 }: {
   open: boolean;
   className?: string;
@@ -45,7 +47,7 @@ function IconButton({
     <button
       type="button"
       aria-label={label}
-      className="flex size-6 items-center justify-center text-foreground hover:bg-sidebar-accent"
+      className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-primary/30 hover:text-foreground"
     >
       {children}
     </button>
@@ -76,32 +78,32 @@ function SidebarSection({
         open && grow ? "flex-1" : "flex-none"
       }`}
     >
-      <div className="flex h-9 shrink-0 items-center gap-1.5 px-3">
+      <div className="flex h-10 shrink-0 items-center gap-1.5 px-3">
         <button
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-sm font-medium text-foreground hover:bg-sidebar-accent"
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-sm font-medium text-foreground"
         >
-          <ExpandChevron open={open} />
+          <ExpandChevron open={open} className="size-4 shrink-0" />
           {title}
         </button>
         {open ? (
           <>
             <IconButton label={`Search ${title}`}>
-              <Search className="size-3.5" strokeWidth={1.75} />
+              <Search className="size-4" strokeWidth={1.5} />
             </IconButton>
             {actionLabel ? (
               <button
                 type="button"
-                className="flex h-6 items-center gap-0.5 px-1.5 text-sm font-medium text-foreground hover:bg-sidebar-accent"
+                className="flex h-6 items-center gap-0.5 px-1.5 text-sm font-medium text-foreground hover:bg-primary/30"
               >
                 <Plus className="size-3" strokeWidth={1.75} />
                 {actionLabel}
               </button>
             ) : null}
             <IconButton label={`${title} layout`}>
-              <LayoutGrid className="size-3.5" strokeWidth={1.75} />
+              <LayoutGrid className="size-4" strokeWidth={1.5} />
             </IconButton>
           </>
         ) : null}
@@ -122,55 +124,72 @@ function SidebarSection({
   );
 }
 
+function useHydratedPathname() {
+  const pathname = usePathname();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  return hydrated ? pathname : "";
+}
+
 function ReviewItem({ submission }: { submission: Submission }) {
-  const [open, setOpen] = useState(false);
+  const pathname = useHydratedPathname();
+  const href = `/reviews/${submission.id}`;
+  const inSubmission = pathname === href || pathname.startsWith(`${href}/`);
+  const [open, setOpen] = useState(inSubmission);
   const { decided, total } = reviewProgress(submission);
   const files = sortFilesForReview(submission.files);
 
+  useEffect(() => {
+    if (inSubmission) setOpen(true);
+  }, [inSubmission]);
+
   return (
     <div>
+      {/* Top-level submission row - click expands/collapses, no highlight */}
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left hover:bg-sidebar-accent"
+        title={submission.title}
+        className="flex w-full items-center gap-1 rounded-md py-2 pl-2 pr-3 text-left hover:bg-primary/30"
       >
-        <ExpandChevron open={open} />
+        <ExpandChevron open={open} className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate text-sm">
           {submission.title}
         </span>
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
           {decided}/{total}
-          <span className="ml-2">
-            {new Date(submission.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            })}
-          </span>
+        </span>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {formatShortDate(submission.createdAt)}
         </span>
       </button>
+      {/* Nested file list */}
       {open ? (
-        <ul className="mb-1 ml-2">
+        <ul className="mb-1">
           {files.map((file) => {
-            const reviewed = file.reviewStatus !== "pending";
+            const fileHref = `/reviews/${submission.id}/files/${file.id}`;
+            const fileSelected = pathname === fileHref;
             return (
               <li key={file.id}>
-                <div className="flex items-center gap-2 px-3 py-1.5">
-                  {reviewed ? (
-                    <Check
-                      className="size-3.5 shrink-0 text-foreground"
-                      strokeWidth={2}
-                    />
-                  ) : (
-                    <Circle
-                      className="size-3 shrink-0 text-muted-foreground"
-                      strokeWidth={1.75}
-                    />
-                  )}
+                <Link
+                  href={fileHref}
+                  title={file.filename}
+                  className={`flex items-center gap-2 rounded-md py-2 pl-6 pr-3 ${
+                    fileSelected
+                      ? "bg-primary/30"
+                      : "hover:bg-primary/30"
+                  }`}
+                >
+                  <StatusIcon status={file.reviewStatus} className="size-3.5 shrink-0" />
                   <span className="min-w-0 flex-1 truncate text-sm">
                     {file.filename}
                   </span>
-                </div>
+                </Link>
               </li>
             );
           })}
@@ -247,7 +266,6 @@ function ProjectSidebar({ submissions }: { submissions: Submission[] }) {
             >
               Quick Tasks
             </h1>
-            <ChevronDown className="size-4 shrink-0" strokeWidth={1.75} />
           </div>
         </div>
         <div className="mt-5 flex items-center">
@@ -273,26 +291,27 @@ function ProjectSidebar({ submissions }: { submissions: Submission[] }) {
   );
 }
 
-function TopBar() {
+function TopBar({ submissions }: { submissions: Submission[] }) {
+  const pathname = useHydratedPathname();
+  const segments = pathname.split("/").filter(Boolean);
+  const submission =
+    segments[0] === "reviews"
+      ? submissions.find((item) => item.id === segments[1])
+      : undefined;
+  const file =
+    segments[2] === "files"
+      ? submission?.files.find((item) => item.id === segments[3])
+      : undefined;
+
+  const crumbs = ["Quick Tasks"];
+  if (submission) crumbs.push("Reviews");
+  if (file) crumbs.push(file.filename);
+
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b border-black bg-background px-4">
-      <p className="truncate text-sm text-muted-foreground">Quick Tasks</p>
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          className="flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <Share2 className="size-3.5" strokeWidth={1.75} />
-          Share
-        </button>
-        <button
-          type="button"
-          className="flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          <LayoutTemplate className="size-3.5" strokeWidth={1.75} />
-          Layout
-        </button>
-      </div>
+      <p className="truncate text-sm text-muted-foreground">
+        {crumbs.join(" / ")}
+      </p>
     </header>
   );
 }
@@ -309,8 +328,8 @@ export function AppShell({
       <IconRail />
       <ProjectSidebar submissions={submissions} />
       <div className="flex min-w-0 flex-1 flex-col bg-background">
-        <TopBar />
-        <div className="min-h-0 flex-1">{children}</div>
+        <TopBar submissions={submissions} />
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>
   );
