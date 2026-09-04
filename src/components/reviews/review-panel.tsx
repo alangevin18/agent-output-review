@@ -2,7 +2,23 @@
 
 import { useState } from "react";
 import { Check, MessageSquare, X } from "lucide-react";
-import type { FileReviewStatus } from "@/types";
+import type { FileAction, FileReviewStatus } from "@/types";
+
+function formatTimestamp(isoString: string): string {
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 type Comment = {
   id: string;
@@ -16,11 +32,14 @@ export function ReviewPanel({
   initialStatus,
   initialComments = [],
   onStatusChange,
+  fileAction = "created",
 }: {
   initialStatus: FileReviewStatus;
   initialComments?: Comment[];
   onStatusChange?: (status: FileReviewStatus, reason?: string) => void;
+  fileAction?: FileAction;
 }) {
+  const isDeleting = fileAction === "deleted";
   const [status, setStatus] = useState<FileReviewStatus>(initialStatus);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
@@ -158,7 +177,12 @@ export function ReviewPanel({
               comments.map((comment) => (
                 <div key={comment.id} className="space-y-2">
                   <div className="rounded-md bg-background p-2">
-                    <p className="text-xs font-medium">{comment.author}</p>
+                    <div className="flex items-start justify-between">
+                      <p className="text-xs font-medium">{comment.author}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formatTimestamp(comment.createdAt)}
+                      </p>
+                    </div>
                     <p className="mt-0.5 text-sm">{comment.text}</p>
                     <button
                       type="button"
@@ -181,7 +205,12 @@ export function ReviewPanel({
                           key={reply.id}
                           className="rounded-md bg-background p-2"
                         >
-                          <p className="text-xs font-medium">{reply.author}</p>
+                          <div className="flex items-start justify-between">
+                            <p className="text-xs font-medium">{reply.author}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {formatTimestamp(reply.createdAt)}
+                            </p>
+                          </div>
                           <p className="mt-0.5 text-sm">{reply.text}</p>
                         </div>
                       ))}
@@ -276,14 +305,18 @@ export function ReviewPanel({
                 onClick={handleReject}
                 className="flex-1 rounded border border-black/20 px-3 py-2 text-sm hover:bg-background"
               >
-                Reject
+                {isDeleting ? "Keep File" : "Reject"}
               </button>
               <button
                 type="button"
                 onClick={handleApprove}
-                className="flex-1 rounded bg-primary px-3 py-2 text-sm font-medium hover:bg-primary/80"
+                className={`flex-1 rounded px-3 py-2 text-sm font-medium ${
+                  isDeleting
+                    ? "bg-red-600 text-white hover:bg-red-700"
+                    : "bg-primary hover:bg-primary/80"
+                }`}
               >
-                Approve
+                {isDeleting ? "Approve Deletion" : "Approve"}
               </button>
             </div>
           )}

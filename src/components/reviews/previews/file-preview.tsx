@@ -25,20 +25,61 @@ export function ActionPill({ action }: { action: FileAction }) {
   );
 }
 
-function DeletedFilePreview({ filename }: { filename: string }) {
+function DeletionWarningBanner() {
+  return (
+    <div className="shrink-0 border-b border-red-200 bg-red-50 px-4 py-2">
+      <p className="text-sm text-red-700">
+        <strong>Warning:</strong> This file will be removed from Project Files if approved.
+      </p>
+    </div>
+  );
+}
+
+function DeletedFilePreview({
+  filename,
+  targetPath,
+}: {
+  filename: string;
+  targetPath: string;
+}) {
+  const extension = getFileExtension(filename);
+  const currentPath = `project-files/${targetPath}`;
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center justify-between border-b border-black/10 bg-sidebar px-4 py-2">
-        <div>
-          <p className="text-sm font-medium">{filename}</p>
-        </div>
-        <ActionPill action="deleted" />
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6">
-        <FileX className="size-12 text-red-300" />
-        <p className="text-sm text-muted-foreground">
-          This file will be deleted
-        </p>
+      <DeletionWarningBanner />
+
+      {/* Show current file content based on type */}
+      <div className="min-h-0 flex-1">
+        {(extension === "png" || extension === "jpg") && (
+          <ImagePreview seedPath={currentPath} filename={filename} action="deleted" />
+        )}
+        {extension === "csv" && (
+          <CSVPreview seedPath={currentPath} filename={filename} action="deleted" />
+        )}
+        {extension === "json" && (
+          <JSONPreview seedPath={currentPath} filename={filename} action="deleted" />
+        )}
+        {extension === "md" && (
+          <MarkdownPreview seedPath={currentPath} filename={filename} action="deleted" />
+        )}
+        {!["png", "jpg", "csv", "json", "md"].includes(extension) && (
+          <div className="flex h-full flex-col">
+            <div className="flex shrink-0 items-center justify-between border-b border-black/10 bg-sidebar px-4 py-2">
+              <div>
+                <p className="text-sm font-medium">{filename}</p>
+                <p className="text-xs text-muted-foreground">{targetPath}</p>
+              </div>
+              <ActionPill action="deleted" />
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6">
+              <FileX className="size-12 text-red-300" />
+              <p className="text-sm text-muted-foreground">
+                Preview not available for this file type
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -50,7 +91,7 @@ export function FilePreview({ file }: { file: SubmissionFile }) {
 
   // Handle deleted files
   if (action === "deleted" || !seedPath) {
-    return <DeletedFilePreview filename={filename} />;
+    return <DeletedFilePreview filename={filename} targetPath={targetPath} />;
   }
 
   // For updated files, use comparison views
@@ -115,7 +156,23 @@ export function FilePreview({ file }: { file: SubmissionFile }) {
       return <MarkdownPreview seedPath={seedPath} filename={filename} action={action} />;
 
     default:
-      // Should not happen with valid data
-      return <DeletedFilePreview filename={filename} />;
+      // Unsupported file type - show basic info
+      return (
+        <div className="flex h-full flex-col">
+          <div className="flex shrink-0 items-center justify-between border-b border-black/10 bg-sidebar px-4 py-2">
+            <div>
+              <p className="text-sm font-medium">{filename}</p>
+              <p className="text-xs text-muted-foreground">{seedPath}</p>
+            </div>
+            <ActionPill action={action} />
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6">
+            <FileX className="size-12 text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground">
+              Preview not available for this file type
+            </p>
+          </div>
+        </div>
+      );
   }
 }

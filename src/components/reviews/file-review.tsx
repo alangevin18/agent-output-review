@@ -33,6 +33,7 @@ export function FileReview({
       <ReviewPanel
         initialStatus={file.reviewStatus}
         onStatusChange={handleStatusChange}
+        fileAction={file.action}
       />
     </div>
   );
