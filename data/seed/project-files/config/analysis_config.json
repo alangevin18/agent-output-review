@@ -1,18 +1,29 @@
 {
-  "pipeline": "deseq2",
-  "version": "1.38.0",
-  "parameters": {
-    "significance_threshold": 0.01,
-    "log2fc_cutoff": 1.0,
-    "multiple_testing_correction": "BH",
-    "exclude_samples": ["S07"],
-    "covariates": ["batch", "sex", "age"],
-    "normalization": "median_of_ratios"
+  "analysis": {
+    "method": "DESeq2",
+    "version": "1.42.0",
+    "design_formula": "~ treatment"
   },
-  "optimizations": {
-    "parallel_threads": 8,
-    "cache_intermediate": true,
-    "compress_output": true
+  "thresholds": {
+    "significance_level": 0.01,
+    "log2fc_cutoff": 1.5,
+    "multiple_testing_correction": "bonferroni",
+    "independent_filtering": false,
+    "min_count_filter": 5
   },
-  "notes": "Final optimized configuration from submission_6"
+  "data": {
+    "input_file": "raw_counts.csv",
+    "samples": 12,
+    "treatment_groups": ["treatment", "control"],
+    "samples_per_group": 6,
+    "reference_level": "control"
+  },
+  "normalization": {
+    "method": "median_of_ratios",
+    "size_factors_range": [0.85, 1.22]
+  },
+  "output": {
+    "results_table": "deg_results.csv",
+    "volcano_plot": "volcano_plot.png"
+  }
 }

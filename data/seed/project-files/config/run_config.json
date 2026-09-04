@@ -5,20 +5,14 @@
     "min_mapping_rate": 0.85,
     "max_duplicate_rate": 0.30,
     "outlier_detection": {
-      "enabled": true,
-      "method": "mahalanobis",
-      "threshold": 3.0
+      "enabled": false
     }
   },
   "batch_correction": {
-    "enabled": true,
-    "method": "ComBat-seq",
-    "batch_variable": "batch",
-    "covariates": ["group"],
-    "parametric": true
+    "enabled": false
   },
   "pca": {
-    "n_components": 10,
+    "n_components": 5,
     "scale": true,
     "center": true
   }
