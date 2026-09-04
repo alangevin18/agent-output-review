@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { mkdir, copyFile, unlink } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { connectDB, Review, Activity } from "@/lib/db";
+import { getSubmission } from "@/lib/data/submissions";
+import { SEED_DIR, PROJECT_FILES_DIR } from "@/lib/data/paths";
 
 // POST /api/reviews/[submissionId]/finalize - Finalize a submission
 export async function POST(
@@ -49,6 +53,15 @@ export async function POST(
       );
     }
 
+    // Get submission from manifest to get file details
+    const submission = await getSubmission(submissionId);
+    if (!submission) {
+      return NextResponse.json(
+        { error: "Submission not found in manifest" },
+        { status: 404 }
+      );
+    }
+
     // Separate approved and rejected files
     const approvedFileIds = Object.entries(decisions)
       .filter(([, status]) => status === "approved")
@@ -56,6 +69,43 @@ export async function POST(
     const rejectedFileIds = Object.entries(decisions)
       .filter(([, status]) => status === "rejected")
       .map(([fileId]) => fileId);
+
+    // Apply approved changes to project-files/
+    const mergeResults: { fileId: string; action: string; success: boolean; error?: string }[] = [];
+
+    for (const fileId of approvedFileIds) {
+      const file = submission.files.find((f) => f.id === fileId);
+      if (!file) continue;
+
+      const targetPath = join(PROJECT_FILES_DIR, file.targetPath);
+
+      try {
+        if (file.action === "created" || file.action === "updated") {
+          // Copy from submissions to project-files
+          if (!file.seedPath) {
+            mergeResults.push({ fileId, action: file.action, success: false, error: "No source path" });
+            continue;
+          }
+          const sourcePath = join(SEED_DIR, file.seedPath);
+
+          // Ensure target directory exists
+          await mkdir(dirname(targetPath), { recursive: true });
+
+          // Copy the file
+          await copyFile(sourcePath, targetPath);
+          mergeResults.push({ fileId, action: file.action, success: true });
+
+        } else if (file.action === "deleted") {
+          // Delete from project-files
+          await unlink(targetPath);
+          mergeResults.push({ fileId, action: file.action, success: true });
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+        mergeResults.push({ fileId, action: file.action, success: false, error: errorMsg });
+        console.error(`Failed to merge file ${fileId}:`, error);
+      }
+    }
 
     const now = new Date();
 
@@ -76,6 +126,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
+      mergeResults,
       activity: {
         id: activity._id.toString(),
         submissionId: activity.submissionId,

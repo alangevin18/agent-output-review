@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Folder,
   HelpCircle,
+  History,
   LayoutGrid,
   PanelLeft,
   Plus,
@@ -298,14 +299,17 @@ function SubmissionCategory({
 }
 
 function ProjectSidebar() {
-  const { submissions } = useSubmissions();
+  const { submissions, finalizedIds, activity } = useSubmissions();
 
-  // Split submissions into awaiting review and ready to finalize
-  const awaitingReview = submissions.filter((s) => {
+  // Filter out finalized submissions
+  const activeSubmissions = submissions.filter((s) => !finalizedIds.has(s.id));
+
+  // Split active submissions into awaiting review and ready to finalize
+  const awaitingReview = activeSubmissions.filter((s) => {
     const { decided, total } = reviewProgress(s);
     return decided < total;
   });
-  const readyToFinalize = submissions.filter((s) => {
+  const readyToFinalize = activeSubmissions.filter((s) => {
     const { decided, total } = reviewProgress(s);
     return decided === total;
   });
@@ -353,14 +357,28 @@ function ProjectSidebar() {
           submissions={sortedReady}
           count={readyToFinalize.length}
         />
-        {submissions.length === 0 && (
+        {activeSubmissions.length === 0 && (
           <p className="px-3 py-4 text-center text-sm text-muted-foreground">
             No reviews yet
           </p>
         )}
       </SidebarSection>
 
-      <SidebarSection title="Activity" empty="No activity yet" defaultOpen={false} />
+      {/* Activity link */}
+      <div className="border-t border-black/10 px-2 py-2">
+        <Link
+          href="/activity"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+        >
+          <History className="size-4 text-muted-foreground" />
+          <span>Activity</span>
+          {activity.length > 0 && (
+            <span className="ml-auto text-xs text-muted-foreground">
+              {activity.length}
+            </span>
+          )}
+        </Link>
+      </div>
     </aside>
   );
 }
@@ -379,8 +397,12 @@ function TopBar() {
       : undefined;
 
   const crumbs = ["Quick Tasks"];
-  if (submission) crumbs.push("Reviews");
-  if (file) crumbs.push(file.filename);
+  if (segments[0] === "activity") {
+    crumbs.push("Activity");
+  } else if (submission) {
+    crumbs.push("Reviews");
+    if (file) crumbs.push(file.filename);
+  }
 
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b border-black bg-background px-4">

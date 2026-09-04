@@ -1,0 +1,10 @@
+{
+  "method": "DESeq2",
+  "version": "1.42.0",
+  "organism": "human",
+  "significance_level": 0.05,
+  "log2fc_cutoff": 1.0,
+  "correction": "BH",
+  "min_count_filter": 10,
+  "normalization": "median_of_ratios"
+}

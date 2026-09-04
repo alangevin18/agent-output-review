@@ -87,12 +87,35 @@ function FinalizationSummary({
 }
 
 export function SubmissionOverview({ submissionId }: { submissionId: string }) {
-  const { submissions, finalizeSubmission } = useSubmissions();
+  const { submissions, finalizedIds, finalizeSubmission } = useSubmissions();
   const [isLoading, setIsLoading] = useState(false);
-  const [finalized, setFinalized] = useState(false);
   const submission = submissions.find((s) => s.id === submissionId);
+  const isFinalized = finalizedIds.has(submissionId);
 
   if (!submission) return null;
+
+  // Show finalized state
+  if (isFinalized) {
+    return (
+      <div className="w-full px-6 py-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-lg font-display font-normal">{submission.title}</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">Agent submission</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+            Finalized
+          </span>
+        </div>
+        <div className="mt-6 rounded-lg border border-black/20 bg-muted/50 p-5">
+          <p className="text-sm font-medium">✓ This submission has been finalized</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Changes have been merged to Project Files. See Activity for details.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const { approved, rejected, pending, decided, total } = reviewProgress(submission);
   const isReadyToFinalize = pending === 0 && total > 0;
@@ -138,7 +161,7 @@ export function SubmissionOverview({ submissionId }: { submissionId: string }) {
         </>
       )}
 
-      {isReadyToFinalize && !finalized && (
+      {isReadyToFinalize && (
         <FinalizationSummary
           approvedCreated={approvedCreated}
           approvedUpdated={approvedUpdated}
@@ -149,7 +172,7 @@ export function SubmissionOverview({ submissionId }: { submissionId: string }) {
             setIsLoading(true);
             try {
               await finalizeSubmission(submissionId);
-              setFinalized(true);
+              // Context will update finalizedIds, triggering re-render with finalized state
             } catch (error) {
               console.error("Failed to finalize:", error);
             } finally {
@@ -157,15 +180,6 @@ export function SubmissionOverview({ submissionId }: { submissionId: string }) {
             }
           }}
         />
-      )}
-
-      {finalized && (
-        <div className="mt-6 rounded-lg border border-black/20 bg-muted p-5">
-          <p className="text-sm font-medium">✓ Submission finalized</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Changes have been recorded.
-          </p>
-        </div>
       )}
 
       <hr className="mt-5 border-black" />

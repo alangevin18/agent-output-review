@@ -9,10 +9,12 @@ import {
   type ReactNode,
 } from "react";
 import type { FileReviewStatus, Submission } from "@/types";
-import type { SubmissionReview } from "@/types/db";
+import type { SubmissionReview, ActivityEntry } from "@/types/db";
 
 type SubmissionsContextType = {
   submissions: Submission[];
+  finalizedIds: Set<string>;
+  activity: ActivityEntry[];
   updateFileStatus: (
     submissionId: string,
     fileId: string,
@@ -31,16 +33,37 @@ export function SubmissionsProvider({
   children: ReactNode;
 }) {
   const [submissions, setSubmissions] = useState(initialSubmissions);
+  const [finalizedIds, setFinalizedIds] = useState<Set<string>>(new Set());
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
 
-  // Fetch review states from DB on mount
+  // Fetch review states and activity from DB on mount
   useEffect(() => {
-    async function loadReviewStates() {
+    async function loadData() {
+      // Load activity
+      try {
+        const activityRes = await fetch("/api/activity");
+        if (activityRes.ok) {
+          const activityData: ActivityEntry[] = await activityRes.json();
+          setActivity(activityData);
+          // Mark finalized submissions
+          setFinalizedIds(new Set(activityData.map((a) => a.submissionId)));
+        }
+      } catch (error) {
+        console.error("Failed to load activity:", error);
+      }
+
+      // Load review states
       const updatedSubmissions = await Promise.all(
         initialSubmissions.map(async (submission) => {
           try {
             const res = await fetch(`/api/reviews/${submission.id}`);
             if (!res.ok) return submission;
             const review: SubmissionReview = await res.json();
+
+            // If finalized, add to finalized set
+            if (review.finalized) {
+              setFinalizedIds((prev) => new Set([...prev, submission.id]));
+            }
 
             // Merge DB decisions with submission files
             return {
@@ -59,7 +82,7 @@ export function SubmissionsProvider({
       );
       setSubmissions(updatedSubmissions);
     }
-    loadReviewStates();
+    loadData();
   }, [initialSubmissions]);
 
   const updateFileStatus = useCallback(
@@ -97,32 +120,29 @@ export function SubmissionsProvider({
       const submission = submissions.find((s) => s.id === submissionId);
       if (!submission) return;
 
-      try {
-        const res = await fetch(`/api/reviews/${submissionId}/finalize`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: submission.title }),
-        });
+      const res = await fetch(`/api/reviews/${submissionId}/finalize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: submission.title }),
+      });
 
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.error || "Failed to finalize");
-        }
-
-        // Could remove from submissions list or mark as finalized
-        // For now, just log success
-        console.log("Submission finalized successfully");
-      } catch (error) {
-        console.error("Failed to finalize submission:", error);
-        throw error;
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to finalize");
       }
+
+      const data = await res.json();
+
+      // Add to finalized set and activity
+      setFinalizedIds((prev) => new Set([...prev, submissionId]));
+      setActivity((prev) => [data.activity, ...prev]);
     },
     [submissions]
   );
 
   return (
     <SubmissionsContext.Provider
-      value={{ submissions, updateFileStatus, finalizeSubmission }}
+      value={{ submissions, finalizedIds, activity, updateFileStatus, finalizeSubmission }}
     >
       {children}
     </SubmissionsContext.Provider>
